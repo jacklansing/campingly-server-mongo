@@ -1,4 +1,4 @@
-import { MyContext } from '../types';
+import { ApolloError } from 'apollo-server-express';
 import {
   Arg,
   Ctx,
@@ -11,11 +11,11 @@ import {
   Root,
   UseMiddleware,
 } from 'type-graphql';
+import { Gear } from '../entities/Gear';
 import { GearVolunteer } from '../entities/GearVolunteer';
 import { isAuth } from '../middleware/isAuth';
-import { ApolloError } from 'apollo-server-express';
+import { MyContext } from '../types';
 import { FieldError } from './user';
-import { Gear } from '../entities/Gear';
 
 @InputType()
 class VolunteerGearInput {

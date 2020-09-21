@@ -1,20 +1,21 @@
-import { Campsite } from '../entities/Campsite';
+import { ApolloError } from 'apollo-server-express';
 import {
   Arg,
+  Ctx,
+  Field,
+  FieldResolver,
   Mutation,
   ObjectType,
   Resolver,
-  Field,
-  Ctx,
-  UseMiddleware,
-  FieldResolver,
   Root,
+  UseMiddleware,
 } from 'type-graphql';
-import { MyContext } from '../types';
-import { isAuth } from '../middleware/isAuth';
-import { FieldError } from './user';
-import { User } from '../entities/User';
 import { Camper } from '../entities/Camper';
+import { Campsite } from '../entities/Campsite';
+import { User } from '../entities/User';
+import { isAuth } from '../middleware/isAuth';
+import { MyContext } from '../types';
+import { FieldError } from './user';
 
 @ObjectType()
 class CampsiteResponse {
@@ -59,11 +60,17 @@ export class CampsiteResolver {
     }
 
     const campsite = Campsite.create({ name, counselorId: req.session.userId });
+
     try {
       await campsite.save();
     } catch (e) {
       console.error('error inserting new campsite');
     }
+
+    if (!campsite.id) {
+      throw new ApolloError('There was an error saving the new campsite');
+    }
+
     return { campsite };
   }
 }

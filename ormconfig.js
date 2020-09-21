@@ -14,4 +14,5 @@ module.exports = {
   synchronize: false,
   entities: [User, Camper, Campsite, Gear, GearCategory, GearVolunteer],
   migrations: [path.join(__dirname, './dist/migrations/*')],
+  cache: true,
 };

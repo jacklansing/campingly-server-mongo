@@ -1,7 +1,6 @@
-import { GearCategory } from '../entities/GearCategory';
+import { ApolloError } from 'apollo-server-express';
 import {
   Arg,
-  Ctx,
   Field,
   FieldResolver,
   Int,
@@ -11,13 +10,12 @@ import {
   Root,
   UseMiddleware,
 } from 'type-graphql';
-import { MyContext } from '../types';
-import { isAuth } from '../middleware/isAuth';
 import { Campsite } from '../entities/Campsite';
-import { FieldError } from './user';
 import { Gear } from '../entities/Gear';
-import { UserInputError, ApolloError } from 'apollo-server-express';
+import { GearCategory } from '../entities/GearCategory';
+import { isAuth } from '../middleware/isAuth';
 import { isCounselor } from '../middleware/isCounselor';
+import { FieldError } from './user';
 
 @ObjectType()
 class GearCategoryResponse {
@@ -46,11 +44,10 @@ export class GearCategoryResolver {
   async createGearCategory(
     @Arg('category') category: string,
     @Arg('campsiteId', () => Int) campsiteId: number,
-    @Ctx() { req }: MyContext,
   ): Promise<GearCategoryResponse> {
     const campsite = await Campsite.findOne(campsiteId);
     if (!campsite) {
-      throw new UserInputError('Invalid Campsite');
+      throw new ApolloError('Invalid Campsite');
     }
 
     const alreadyUsed = await GearCategory.findOne({

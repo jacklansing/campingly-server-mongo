@@ -18,7 +18,7 @@ export const isCounselor: MiddlewareFn<MyContext> = async (
   if (isOwner) return next();
 
   const isCounselor = Camper.findOne({
-    where: { campsiteId, userId },
+    where: { campsiteId, userId, role: 'counselor' },
   });
 
   if (isCounselor) return next();
