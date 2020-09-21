@@ -41,7 +41,7 @@ class UserResponse {
 }
 
 @ObjectType()
-class ErrorMessage {
+export class ErrorMessage {
   @Field(() => String)
   message: string;
 }

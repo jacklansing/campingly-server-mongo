@@ -6,7 +6,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BaseEntity,
+  OneToMany,
 } from 'typeorm';
+import { Campsite } from './Campsite';
 
 @ObjectType()
 @Entity()
@@ -25,6 +27,9 @@ export class User extends BaseEntity {
 
   @Column()
   password!: string;
+
+  @OneToMany(() => Campsite, (campsite) => campsite.counselor)
+  campsites: Campsite[];
 
   @Field(() => Date)
   @CreateDateColumn()
