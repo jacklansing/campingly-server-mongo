@@ -1,7 +1,7 @@
 import {MigrationInterface, QueryRunner} from "typeorm";
 
-export class CampsiteGearMigration1600638931391 implements MigrationInterface {
-    name = 'CampsiteGearMigration1600638931391'
+export class CampsiteGearMigration1600708555158 implements MigrationInterface {
+    name = 'CampsiteGearMigration1600708555158'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "camper" ("userId" integer NOT NULL, "role" character varying NOT NULL DEFAULT 'camper', "campsiteId" integer NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_2212d129ec2b3841580798a6ed8" PRIMARY KEY ("userId", "campsiteId"))`);

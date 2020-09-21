@@ -14,6 +14,7 @@ import { MyContext } from '../types';
 import { isAuth } from '../middleware/isAuth';
 import { FieldError } from './user';
 import { User } from '../entities/User';
+import { Camper } from '../entities/Camper';
 
 @ObjectType()
 class CampsiteResponse {
@@ -29,6 +30,11 @@ export class CampsiteResolver {
   @FieldResolver(() => User)
   counselor(@Root() campsite: Campsite, @Ctx() { userLoader }: MyContext) {
     return userLoader.load(campsite.counselorId);
+  }
+
+  @FieldResolver(() => Camper)
+  campers(@Root() campsite: Campsite) {
+    return Camper.find({ where: { campsiteId: campsite.id } });
   }
 
   @Mutation(() => CampsiteResponse)

@@ -32,9 +32,8 @@ export class Campsite extends BaseEntity {
   @ManyToOne(() => User, (user) => user.campsites)
   counselor: User;
 
-  //TODO: Implement field
   @Field(() => [Camper])
-  @OneToMany(() => User, (user) => user.id)
+  @OneToMany(() => Camper, (camper) => camper.userId)
   campers: Camper[];
 
   @Field(() => [GearCategory])

@@ -4,6 +4,7 @@ import {
   Ctx,
   Field,
   FieldResolver,
+  Int,
   Mutation,
   ObjectType,
   Resolver,
@@ -16,6 +17,7 @@ import { Campsite } from '../entities/Campsite';
 import { FieldError } from './user';
 import { Gear } from '../entities/Gear';
 import { UserInputError, ApolloError } from 'apollo-server-express';
+import { isCounselor } from '../middleware/isCounselor';
 
 @ObjectType()
 class GearCategoryResponse {
@@ -40,9 +42,10 @@ export class GearCategoryResolver {
 
   @Mutation(() => GearCategoryResponse)
   @UseMiddleware(isAuth)
+  @UseMiddleware(isCounselor)
   async createGearCategory(
     @Arg('category') category: string,
-    @Arg('campsiteId') campsiteId: number,
+    @Arg('campsiteId', () => Int) campsiteId: number,
     @Ctx() { req }: MyContext,
   ): Promise<GearCategoryResponse> {
     const campsite = await Campsite.findOne(campsiteId);
