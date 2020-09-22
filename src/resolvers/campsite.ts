@@ -1,11 +1,14 @@
 import { ApolloError } from 'apollo-server-express';
+import { GearCategory } from '../entities/GearCategory';
 import {
   Arg,
   Ctx,
   Field,
   FieldResolver,
+  InputType,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
   Root,
   UseMiddleware,
@@ -26,6 +29,18 @@ class CampsiteResponse {
   errors?: FieldError[];
 }
 
+@InputType()
+class CampsiteInput {
+  @Field()
+  name: String;
+
+  @Field()
+  startingDate: Date;
+
+  @Field()
+  endingDate: Date;
+}
+
 @Resolver(Campsite)
 export class CampsiteResolver {
   @FieldResolver(() => User)
@@ -38,14 +53,19 @@ export class CampsiteResolver {
     return Camper.find({ where: { campsiteId: campsite.id } });
   }
 
+  @FieldResolver(() => GearCategory)
+  gearCategories(@Root() campsite: Campsite) {
+    return GearCategory.find({ where: { campsiteId: campsite.id } });
+  }
+
   @Mutation(() => CampsiteResponse)
   @UseMiddleware(isAuth)
   async createCampsite(
-    @Arg('name') name: string,
+    @Arg('input') input: CampsiteInput,
     @Ctx() { req }: MyContext,
   ): Promise<CampsiteResponse> {
     const alreadyUsed = await Campsite.findOne({
-      where: { name, counselorId: req.session.userId },
+      where: { name: input.name, counselorId: req.session.userId },
     });
 
     if (alreadyUsed) {
@@ -59,7 +79,12 @@ export class CampsiteResolver {
       };
     }
 
-    const campsite = Campsite.create({ name, counselorId: req.session.userId });
+    const campsite = Campsite.create({
+      name: input.name,
+      startingDate: input.startingDate,
+      endingDate: input.endingDate,
+      counselorId: req.session.userId,
+    } as Campsite);
 
     try {
       await campsite.save();
@@ -72,5 +97,32 @@ export class CampsiteResolver {
     }
 
     return { campsite };
+  }
+
+  @Query(() => [Campsite])
+  @UseMiddleware(isAuth)
+  async allCampsites(@Ctx() { req }: MyContext) {
+    const userId = req.session.userId;
+    const allCampsites = Campsite.query(
+      `
+      SELECT * FROM "campsite" cs 
+      LEFT JOIN "camper" cm ON "cs"."id" = "cm"."campsiteId"
+      WHERE "cs"."counselorId" = $1
+      OR "cm"."userId" = $2
+      ORDER BY "cs"."createdAt" ASC
+    `,
+      [userId, userId],
+    );
+    return allCampsites;
+  }
+
+  @Query(() => [Campsite])
+  @UseMiddleware(isAuth)
+  async myCampsites(@Ctx() { req }: MyContext) {
+    const userId = req.session.userId;
+    return Campsite.find({
+      where: { counselorId: userId },
+      order: { createdAt: 'ASC' },
+    });
   }
 }

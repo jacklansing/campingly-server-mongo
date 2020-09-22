@@ -1,4 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
+import { Gear } from '../entities/Gear';
 import {
   Arg,
   Field,
@@ -11,7 +12,6 @@ import {
   UseMiddleware,
 } from 'type-graphql';
 import { Campsite } from '../entities/Campsite';
-import { Gear } from '../entities/Gear';
 import { GearCategory } from '../entities/GearCategory';
 import { isAuth } from '../middleware/isAuth';
 import { isCounselor } from '../middleware/isCounselor';

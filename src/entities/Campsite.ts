@@ -41,6 +41,14 @@ export class Campsite extends BaseEntity {
   gearCategories: GearCategory[];
 
   @Field(() => Date)
+  @Column()
+  startingDate: Date;
+
+  @Field(() => Date)
+  @Column()
+  endingDate: Date;
+
+  @Field(() => Date)
   @CreateDateColumn()
   createdAt: Date;
 
