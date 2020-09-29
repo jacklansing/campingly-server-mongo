@@ -7,6 +7,7 @@ import {
   Int,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
   Root,
   UseMiddleware,
@@ -15,7 +16,7 @@ import { Campsite } from '../entities/Campsite';
 import { GearCategory } from '../entities/GearCategory';
 import { isAuth } from '../middleware/isAuth';
 import { isCounselor } from '../middleware/isCounselor';
-import { FieldError } from './user';
+import { ErrorMessage, FieldError } from './user';
 
 @ObjectType()
 class GearCategoryResponse {
@@ -24,6 +25,15 @@ class GearCategoryResponse {
 
   @Field(() => [FieldError], { nullable: true })
   errors?: FieldError[];
+}
+
+@ObjectType()
+class GetCategoriesResponse {
+  @Field(() => [GearCategory], { nullable: true })
+  gearCategories?: GearCategory[];
+
+  @Field(() => [ErrorMessage], { nullable: true })
+  errors?: ErrorMessage[];
 }
 
 @Resolver(() => GearCategory)
@@ -82,5 +92,24 @@ export class GearCategoryResolver {
     }
 
     return { gearCategory: newCategory };
+  }
+
+  @Query(() => GetCategoriesResponse)
+  @UseMiddleware(isAuth)
+  async getCategories(
+    @Arg('campsiteId', () => Int) campsiteId: number,
+  ): Promise<GetCategoriesResponse> {
+    const categories = await GearCategory.find({ where: { campsiteId } });
+    if (!categories.length) {
+      return {
+        errors: [
+          {
+            message: 'No categories exist for this campsite.',
+          },
+        ],
+      };
+    }
+
+    return { gearCategories: categories };
   }
 }

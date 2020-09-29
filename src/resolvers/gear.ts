@@ -1,4 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
+import { GearVolunteer } from '../entities/GearVolunteer';
 import {
   Arg,
   Field,
@@ -6,6 +7,7 @@ import {
   InputType,
   Int,
   Mutation,
+  ObjectType,
   Resolver,
   Root,
   UseMiddleware,
@@ -13,6 +15,7 @@ import {
 import { Gear } from '../entities/Gear';
 import { GearCategory } from '../entities/GearCategory';
 import { isAuth } from '../middleware/isAuth';
+import { ErrorMessage } from './user';
 
 @InputType()
 class GearInput {
@@ -26,6 +29,15 @@ class GearInput {
   gearCategoryId: number;
 }
 
+@ObjectType()
+class GearResponse {
+  @Field(() => Gear, { nullable: true })
+  gear?: Gear;
+
+  @Field(() => [ErrorMessage], { nullable: true })
+  errors?: ErrorMessage[];
+}
+
 @Resolver(() => Gear)
 export class GearResolver {
   @FieldResolver()
@@ -33,9 +45,14 @@ export class GearResolver {
     return GearCategory.findOne({ where: { id: gear.gearCategoryId } });
   }
 
-  @Mutation(() => Gear)
+  @FieldResolver()
+  gearVolunteers(@Root() gear: Gear) {
+    return GearVolunteer.find({ where: { gearId: gear.id } });
+  }
+
+  @Mutation(() => GearResponse)
   @UseMiddleware(isAuth)
-  async addGear(@Arg('input') input: GearInput) {
+  async addGear(@Arg('input') input: GearInput): Promise<GearResponse> {
     const categoryExists = await GearCategory.findOne({
       where: { id: input.gearCategoryId },
     });
@@ -54,6 +71,6 @@ export class GearResolver {
       throw new ApolloError('There was an error saving the new gear');
     }
 
-    return { ...newGear };
+    return { gear: { ...newGear } as Gear };
   }
 }

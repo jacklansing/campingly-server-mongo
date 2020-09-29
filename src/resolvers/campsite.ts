@@ -6,6 +6,7 @@ import {
   Field,
   FieldResolver,
   InputType,
+  Int,
   Mutation,
   ObjectType,
   Query,
@@ -109,7 +110,7 @@ export class CampsiteResolver {
       LEFT JOIN "camper" cm ON "cs"."id" = "cm"."campsiteId"
       WHERE "cs"."counselorId" = $1
       OR "cm"."userId" = $2
-      ORDER BY "cs"."createdAt" ASC
+      ORDER BY "cs"."startingDate" ASC
     `,
       [userId, userId],
     );
@@ -124,5 +125,17 @@ export class CampsiteResolver {
       where: { counselorId: userId },
       order: { createdAt: 'ASC' },
     });
+  }
+
+  @Query(() => Campsite)
+  @UseMiddleware(isAuth)
+  async getCampsite(@Arg('campsiteId', () => Int) campsiteId: number) {
+    const campsite = await Campsite.findOne(campsiteId);
+
+    if (!campsite) {
+      throw new ApolloError('Campsite not found.');
+    }
+
+    return campsite;
   }
 }
