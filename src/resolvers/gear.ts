@@ -16,6 +16,7 @@ import { Gear } from '../entities/Gear';
 import { GearCategory } from '../entities/GearCategory';
 import { isAuth } from '../middleware/isAuth';
 import { ErrorMessage } from './user';
+import { isCounselor } from '../middleware/isCounselor';
 
 @InputType()
 class GearInput {
@@ -72,5 +73,19 @@ export class GearResolver {
     }
 
     return { gear: { ...newGear } as Gear };
+  }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  @UseMiddleware(isCounselor)
+  async deleteGear(
+    @Arg('gearId', () => Int) gearId: number,
+  ): Promise<boolean | ErrorMessage[]> {
+    try {
+      await Gear.delete({ id: gearId });
+    } catch {
+      throw new ApolloError('There was an error deleting the gear');
+    }
+    return true;
   }
 }
