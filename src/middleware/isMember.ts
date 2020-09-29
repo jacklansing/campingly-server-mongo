@@ -4,10 +4,7 @@ import { AuthenticationError } from 'apollo-server-express';
 import { Campsite } from '../entities/Campsite';
 import { Camper } from '../entities/Camper';
 
-export const isCounselor: MiddlewareFn<MyContext> = async (
-  { context },
-  next,
-) => {
+export const isMember: MiddlewareFn<MyContext> = async ({ context }, next) => {
   const campsiteId = context.req.headers.csid
     ? parseInt(context.req?.headers?.csid as string)
     : -1;
@@ -18,10 +15,13 @@ export const isCounselor: MiddlewareFn<MyContext> = async (
   });
   if (isOwner) return next();
 
-  const isCounselor = await Camper.findOne({
-    where: { campsiteId, userId, role: 'counselor' },
+  const isMember = await Camper.findOne({
+    where: { campsiteId, userId },
   });
-  if (isCounselor) return next();
 
-  throw new AuthenticationError('unauthorized access, must be camp counselor');
+  if (isMember) return next();
+
+  throw new AuthenticationError(
+    'unauthorized access, must be a member of this camp',
+  );
 };

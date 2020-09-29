@@ -20,6 +20,7 @@ import { User } from '../entities/User';
 import { isAuth } from '../middleware/isAuth';
 import { MyContext } from '../types';
 import { FieldError } from './user';
+import { isMember } from '../middleware/isMember';
 
 @ObjectType()
 class CampsiteResponse {
@@ -128,7 +129,7 @@ export class CampsiteResolver {
   }
 
   @Query(() => Campsite)
-  @UseMiddleware(isAuth)
+  @UseMiddleware(isAuth, isMember)
   async getCampsite(@Arg('campsiteId', () => Int) campsiteId: number) {
     const campsite = await Campsite.findOne(campsiteId);
 
