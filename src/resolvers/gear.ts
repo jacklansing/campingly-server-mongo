@@ -17,6 +17,7 @@ import { GearCategory } from '../entities/GearCategory';
 import { isAuth } from '../middleware/isAuth';
 import { ErrorMessage } from './user';
 import { isCounselor } from '../middleware/isCounselor';
+import { isMember } from '../middleware/isMember';
 
 @InputType()
 class GearInput {
@@ -53,6 +54,7 @@ export class GearResolver {
 
   @Mutation(() => GearResponse)
   @UseMiddleware(isAuth)
+  @UseMiddleware(isMember)
   async addGear(@Arg('input') input: GearInput): Promise<GearResponse> {
     const categoryExists = await GearCategory.findOne({
       where: { id: input.gearCategoryId },
@@ -80,9 +82,10 @@ export class GearResolver {
   @UseMiddleware(isCounselor)
   async deleteGear(
     @Arg('gearId', () => Int) gearId: number,
+    @Arg('gearCategoryId', () => Int) gearCategoryId: number,
   ): Promise<boolean | ErrorMessage[]> {
     try {
-      await Gear.delete({ id: gearId });
+      await Gear.delete({ id: gearId, gearCategoryId });
     } catch {
       throw new ApolloError('There was an error deleting the gear');
     }
