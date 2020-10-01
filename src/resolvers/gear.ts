@@ -2,6 +2,7 @@ import { ApolloError } from 'apollo-server-express';
 import { GearVolunteer } from '../entities/GearVolunteer';
 import {
   Arg,
+  Ctx,
   Field,
   FieldResolver,
   InputType,
@@ -18,6 +19,7 @@ import { isAuth } from '../middleware/isAuth';
 import { ErrorMessage } from './user';
 import { isCounselor } from '../middleware/isCounselor';
 import { isMember } from '../middleware/isMember';
+import { MyContext } from '../types';
 
 @InputType()
 class GearInput {
@@ -50,6 +52,14 @@ export class GearResolver {
   @FieldResolver()
   gearVolunteers(@Root() gear: Gear) {
     return GearVolunteer.find({ where: { gearId: gear.id } });
+  }
+
+  @FieldResolver(() => Boolean)
+  async userHasVolunteered(@Root() gear: Gear, @Ctx() { req }: MyContext) {
+    const volunteer = await GearVolunteer.findOne({
+      where: { gearId: gear.id, userId: req.session.userId },
+    });
+    return !!volunteer;
   }
 
   @Mutation(() => GearResponse)

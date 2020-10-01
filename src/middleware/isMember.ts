@@ -5,11 +5,7 @@ import { Campsite } from '../entities/Campsite';
 import { Camper } from '../entities/Camper';
 
 export const isMember: MiddlewareFn<MyContext> = async ({ context }, next) => {
-  // hacky for now but checks campsite reliably
-  const campsiteId = parseInt(
-    context.req.headers.referer?.split('/').reverse()[0] as string,
-  );
-
+  const campsiteId = parseInt(context.req.headers.csid as string);
   const userId = context.req.session.userId;
 
   const isOwner = await Campsite.findOne({

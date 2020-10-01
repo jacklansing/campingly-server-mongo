@@ -23,9 +23,6 @@ class VolunteerGearInput {
   gearId: number;
 
   @Field()
-  userId: number;
-
-  @Field()
   volunteerAmount: number;
 }
 
@@ -35,7 +32,7 @@ class GearVolunteerResponse {
   gearVolunteer?: GearVolunteer;
 
   @Field(() => [FieldError], { nullable: true })
-  fieldError?: FieldError[];
+  errors?: FieldError[];
 }
 
 @Resolver(() => GearVolunteer)
@@ -51,6 +48,7 @@ export class GearVolunteerResolver {
     @Arg('input') input: VolunteerGearInput,
     @Ctx() { req }: MyContext,
   ): Promise<GearVolunteerResponse> {
+    // Prevent user from volunteering twice
     const alreadyVolunteered = await GearVolunteer.findOne({
       where: { gearId: input.gearId, userId: req.session.userId },
     });
@@ -58,7 +56,30 @@ export class GearVolunteerResolver {
     if (alreadyVolunteered)
       throw new ApolloError('Cannot volunteer for the same gear twice');
 
-    const newVolunteer = GearVolunteer.create({ ...input });
+    // Prevent user from volunteering more than total needed
+    const gear = await Gear.findOne({ where: { id: input.gearId } });
+    const allVolunteers = await GearVolunteer.find({
+      where: { gearId: input.gearId },
+    });
+    const totalVolunteered = allVolunteers.reduce(
+      (a, b) => a + b.volunteerAmount,
+      0,
+    );
+    if (gear?.quantity! - totalVolunteered < input.volunteerAmount) {
+      return {
+        errors: [
+          {
+            field: 'volunteerAmount',
+            message: 'Cannot volunteer more than needed',
+          },
+        ],
+      };
+    }
+
+    const newVolunteer = GearVolunteer.create({
+      ...input,
+      userId: req.session.userId,
+    });
 
     try {
       await newVolunteer.save();
