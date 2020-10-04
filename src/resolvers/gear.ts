@@ -16,10 +16,12 @@ import {
 import { Gear } from '../entities/Gear';
 import { GearCategory } from '../entities/GearCategory';
 import { isAuth } from '../middleware/isAuth';
-import { ErrorMessage } from './user';
+import { ErrorMessage, FieldError } from './user';
 import { isCounselor } from '../middleware/isCounselor';
 import { isMember } from '../middleware/isMember';
 import { MyContext } from '../types';
+import { useValidationSchema } from '../utils/validators/useValidationSchema';
+import { AddGearSchema } from '../utils/validators/GearSchemas';
 
 @InputType()
 class GearInput {
@@ -38,8 +40,8 @@ class GearResponse {
   @Field(() => Gear, { nullable: true })
   gear?: Gear;
 
-  @Field(() => [ErrorMessage], { nullable: true })
-  errors?: ErrorMessage[];
+  @Field(() => [FieldError], { nullable: true })
+  errors?: FieldError[];
 }
 
 @Resolver(() => Gear)
@@ -66,6 +68,12 @@ export class GearResolver {
   @UseMiddleware(isAuth)
   @UseMiddleware(isMember)
   async addGear(@Arg('input') input: GearInput): Promise<GearResponse> {
+    console.log('INPUT IS', input);
+    const { errors } = await useValidationSchema(input, AddGearSchema);
+    console.log(errors);
+
+    if (errors) return { errors };
+
     const categoryExists = await GearCategory.findOne({
       where: { id: input.gearCategoryId },
     });

@@ -5,6 +5,7 @@ import {
   Field,
   FieldResolver,
   InputType,
+  Int,
   Mutation,
   ObjectType,
   Resolver,
@@ -15,7 +16,7 @@ import { Gear } from '../entities/Gear';
 import { GearVolunteer } from '../entities/GearVolunteer';
 import { isAuth } from '../middleware/isAuth';
 import { MyContext } from '../types';
-import { FieldError } from './user';
+import { ErrorMessage, FieldError } from './user';
 
 @InputType()
 class VolunteerGearInput {
@@ -94,5 +95,27 @@ export class GearVolunteerResolver {
     }
 
     return { gearVolunteer: newVolunteer };
+  }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async undoVolunteerGear(
+    @Arg('gearId', () => Int) gearId: number,
+    @Ctx() { req }: MyContext,
+  ): Promise<boolean | ErrorMessage[]> {
+    const gearVolunteer = await GearVolunteer.findOne({
+      where: { gearId, userId: req.session.userId },
+    });
+
+    if (gearVolunteer?.userId !== req.session.userId) {
+      throw new ApolloError('Unauthorized request');
+    }
+
+    try {
+      await gearVolunteer?.remove();
+    } catch {
+      throw new ApolloError('An error ocurred during undo volunteer');
+    }
+    return true;
   }
 }
