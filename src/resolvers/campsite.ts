@@ -21,6 +21,8 @@ import { isAuth } from '../middleware/isAuth';
 import { MyContext } from '../types';
 import { FieldError } from './user';
 import { isMember } from '../middleware/isMember';
+import { useValidationSchema } from '../utils/validators/useValidationSchema';
+import { NewCampsiteSchema } from '../utils/validators/CampsiteSchema';
 
 @ObjectType()
 class CampsiteResponse {
@@ -80,6 +82,9 @@ export class CampsiteResolver {
         ],
       };
     }
+
+    const { errors } = await useValidationSchema(input, NewCampsiteSchema);
+    if (errors) return { errors };
 
     const campsite = Campsite.create({
       name: input.name,
