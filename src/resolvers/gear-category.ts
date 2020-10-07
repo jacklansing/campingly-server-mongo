@@ -17,8 +17,8 @@ import { GearCategory } from '../entities/GearCategory';
 import { isAuth } from '../middleware/isAuth';
 import { isCounselor } from '../middleware/isCounselor';
 import { ErrorMessage, FieldError } from './user';
-import { NewGearCategorySchema } from 'src/utils/validators/GearCategorySchema';
-import { useValidationSchema } from 'src/utils/validators/useValidationSchema';
+import { NewGearCategorySchema } from '../utils/validators/GearCategorySchema';
+import { useValidationSchema } from '../utils/validators/useValidationSchema';
 
 @ObjectType()
 class GearCategoryResponse {
