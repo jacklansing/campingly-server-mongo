@@ -42,7 +42,7 @@ const main = async () => {
         httpOnly: true, // Prevents access to the cookie from the frontend js
         secure: __prod__, // Cookie onlyworks in https
         sameSite: 'lax', // csrf
-        domain: __prod__ ? 'campingly.app' : undefined,
+        domain: __prod__ ? 'campingly.app' : 'localhost',
       },
       saveUninitialized: false, // Prevents storing empty sessions
       secret: process.env.SESSION_SECRET,

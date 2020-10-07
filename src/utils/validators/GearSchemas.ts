@@ -1,7 +1,7 @@
 import * as Yup from 'yup';
 
 const gearNameValidator = Yup.string()
-  .min(3, 'Gear name cannot be less than 4 characters')
+  .min(3, 'Gear name cannot be less than 3 characters')
   .max(30, 'Gear name cannot be more than 30 characters')
   .required('You must provide a label');
 

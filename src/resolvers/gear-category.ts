@@ -17,6 +17,8 @@ import { GearCategory } from '../entities/GearCategory';
 import { isAuth } from '../middleware/isAuth';
 import { isCounselor } from '../middleware/isCounselor';
 import { ErrorMessage, FieldError } from './user';
+import { NewGearCategorySchema } from 'src/utils/validators/GearCategorySchema';
+import { useValidationSchema } from 'src/utils/validators/useValidationSchema';
 
 @ObjectType()
 class GearCategoryResponse {
@@ -59,6 +61,12 @@ export class GearCategoryResolver {
     if (!campsite) {
       throw new ApolloError('Invalid Campsite');
     }
+
+    const { errors } = await useValidationSchema(
+      { category },
+      NewGearCategorySchema,
+    );
+    if (errors) return { errors };
 
     const alreadyUsed = await GearCategory.findOne({
       where: { campsiteId: campsite.id, category },
