@@ -1,11 +1,12 @@
-import { Connection } from 'typeorm';
-import { createTestConnection } from './helpers/createTestConnection';
+import { Connection, getConnection } from 'typeorm';
 import { useRequest } from './helpers/useRequest';
 import { User } from '../entities/User';
 import { getValidUser } from './helpers/mocks';
 import argon2 from 'argon2';
 import { FORGOT_PASS_PREFIX } from '../constants';
 import { MockRedis } from './helpers/MockRedis';
+import { createConnection } from 'typeorm';
+import entities from '../utils/entities';
 
 const REGISTER_MUTATION = `
   mutation Register($input: UsernamePasswordInput!){
@@ -84,10 +85,34 @@ const ME_QUERY = `
 describe('User Resolver', () => {
   let conn: Connection;
   beforeAll(async () => {
-    conn = await createTestConnection();
+    conn = await createConnection({
+      type: 'postgres',
+      username: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+      database: `campingly_test_${process.env.JEST_WORKER_ID}`,
+      logging: false,
+      entities,
+    });
   });
 
-  afterEach(() => conn.query(`truncate "user" restart identity cascade`));
+  beforeEach(async () => {
+    const queryRunner = getConnection().createQueryRunner();
+
+    await queryRunner.query(`
+      DO
+      $func$
+      BEGIN
+        EXECUTE (
+          SELECT 'TRUNCATE TABLE ' || string_agg(oid::regclass::text, ', ') || ' CASCADE'
+            FROM pg_class
+            WHERE relkind = 'r'
+            AND relnamespace = 'public'::regnamespace
+        );
+      END
+      $func$;
+    `);
+    await queryRunner.release();
+  });
 
   afterAll(async () => {
     await conn.close();

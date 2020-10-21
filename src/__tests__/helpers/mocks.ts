@@ -107,3 +107,45 @@ export const getValidUser = () => {
 };
 
 export const getAllValidUsers = () => validUsers;
+
+function getCampsiteStartingDate() {
+  const date = new Date();
+  date.setDate(Math.random() * (100 - 50) + 50);
+  return date.toISOString();
+}
+
+function getCampsiteEndingDate() {
+  const date = new Date();
+  date.setDate(Math.random() * (200 - 100) + 100);
+  return date.toISOString();
+}
+
+const validCampsites = [
+  {
+    name: 'Berm Creek',
+    startingDate: getCampsiteStartingDate(),
+    endingDate: getCampsiteEndingDate(),
+  },
+  {
+    name: 'Holmes Lake',
+    startingDate: getCampsiteStartingDate(),
+    endingDate: getCampsiteEndingDate(),
+  },
+  {
+    name: 'Lake George',
+    startingDate: getCampsiteStartingDate(),
+    endingDate: getCampsiteEndingDate(),
+  },
+  {
+    name: 'Utah Lake',
+    startingDate: getCampsiteStartingDate(),
+    endingDate: getCampsiteEndingDate(),
+  },
+];
+
+export const getValidCampsite = () => {
+  const campsite = validCampsites[Math.floor(Math.random() * 3)];
+  return { ...campsite };
+};
+
+export const getAllValidCampsites = () => validCampsites;

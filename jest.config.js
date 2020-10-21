@@ -10,4 +10,6 @@ module.exports = {
   collectCoverage: false,
   collectCoverageFrom: ['<rootDir>/src/**/*.ts', '<rootDir>/src/**/*.d.ts'],
   coverageDirectory: '<rootDir>/coverage',
+  setupFiles: ['dotenv-safe/config'],
+  globalSetup: './src/__tests__/helpers/setupTestConnections.ts',
 };
