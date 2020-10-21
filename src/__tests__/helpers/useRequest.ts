@@ -7,6 +7,7 @@ interface Options {
   source: string;
   variableValues?: Maybe<{ [key: string]: any }>;
   userId?: number;
+  csid?: number;
   clearCookie?: jest.Mock<any, any>;
   destroy?: jest.Mock<any, any>;
   redis?: MockRedis;
@@ -18,6 +19,7 @@ export const useRequest = async ({
   source,
   variableValues,
   userId,
+  csid,
   clearCookie = jest.fn(),
   destroy = jest.fn(),
   redis = new MockRedis(),
@@ -34,6 +36,9 @@ export const useRequest = async ({
         session: {
           userId,
           destroy,
+        },
+        headers: {
+          csid,
         },
       },
       res: {

@@ -13,7 +13,7 @@ export default async () => {
   });
 
   const databaseName = `campingly_test_template`;
-  const workers = parseInt(process.env.JEST_WORKERS || '1');
+  const workers = parseInt(process.env.JEST_WORKERS || '2');
 
   await connection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
   await connection.query(`CREATE DATABASE ${databaseName}`);

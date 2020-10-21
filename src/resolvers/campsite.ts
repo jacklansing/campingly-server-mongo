@@ -25,7 +25,7 @@ import { useValidationSchema } from '../utils/validators/useValidationSchema';
 import { NewCampsiteSchema } from '../utils/validators/CampsiteSchema';
 
 @ObjectType()
-class CampsiteResponse {
+export class CampsiteResponse {
   @Field(() => Campsite, { nullable: true })
   campsite?: Campsite;
 
@@ -34,7 +34,7 @@ class CampsiteResponse {
 }
 
 @InputType()
-class CampsiteInput {
+export class CampsiteInput {
   @Field()
   name: String;
 

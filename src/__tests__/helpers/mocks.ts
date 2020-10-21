@@ -111,13 +111,13 @@ export const getAllValidUsers = () => validUsers;
 function getCampsiteStartingDate() {
   const date = new Date();
   date.setDate(Math.random() * (100 - 50) + 50);
-  return date.toISOString();
+  return new Date(date.toISOString());
 }
 
 function getCampsiteEndingDate() {
   const date = new Date();
   date.setDate(Math.random() * (200 - 100) + 100);
-  return date.toISOString();
+  return new Date(date.toISOString());
 }
 
 const validCampsites = [
