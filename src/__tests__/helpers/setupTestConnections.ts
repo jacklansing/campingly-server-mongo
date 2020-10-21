@@ -2,7 +2,15 @@ import { createConnection } from 'typeorm';
 import entities from '../../utils/entities';
 
 export default async () => {
-  const connection = await createConnection();
+  const connection = await createConnection({
+    type: 'postgres',
+    url: process.env.DATABASE_URL,
+    logging: true,
+    synchronize: false,
+    entities: entities,
+    migrations: ['/src/migrations/*.{ts,js}'],
+    cache: true,
+  });
 
   const databaseName = `campingly_test_template`;
   const workers = parseInt(process.env.JEST_WORKERS || '1');

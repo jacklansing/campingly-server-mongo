@@ -10,11 +10,20 @@ import cors from 'cors';
 import { createConnection } from 'typeorm';
 import { createUserLoader } from './utils/createUserLoader';
 import { createSchema } from './utils/createSchema';
+import entities from './utils/entities';
 
 const main = async () => {
   // Connection config loaded automatically.
-  // See ormconfig.js
-  const conn = await createConnection();
+  // See ormconfig.ts
+  const conn = await createConnection({
+    type: 'postgres',
+    url: process.env.DATABASE_URL,
+    logging: true,
+    synchronize: false,
+    entities: entities,
+    migrations: ['/src/migrations/*.{ts,js}'],
+    cache: true,
+  });
   // Run migrations after connection
   await conn.runMigrations();
 

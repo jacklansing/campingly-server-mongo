@@ -2,8 +2,8 @@ import * as Yup from 'yup';
 
 const campsiteNameValidator = Yup.string()
   .min(3, 'Campsite name cannot be less than 3 characters')
-  .max(50, 'Campsite name cannot be more than 30 characters')
-  .required('You must provide a category name');
+  .max(50, 'Campsite name cannot be more than 50 characters')
+  .required('You must provide a campsite name');
 
 const startingDateValidator = Yup.date()
   .min(new Date(), 'Starting date must be in the future')
