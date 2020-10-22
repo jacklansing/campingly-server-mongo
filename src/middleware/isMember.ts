@@ -8,6 +8,12 @@ export const isMember: MiddlewareFn<MyContext> = async ({ context }, next) => {
   const campsiteId = parseInt(context.req.headers.csid as string);
   const userId = context.req.session.userId;
 
+  if (!campsiteId) {
+    throw new AuthenticationError(
+      'Campsite identifier (csid) missing from request',
+    );
+  }
+
   const isOwner = await Campsite.findOne({
     where: { id: campsiteId, counselorId: userId },
   });

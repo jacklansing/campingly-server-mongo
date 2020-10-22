@@ -19,6 +19,7 @@ import { isCounselor } from '../middleware/isCounselor';
 import { ErrorMessage, FieldError } from './user';
 import { NewGearCategorySchema } from '../utils/validators/GearCategorySchema';
 import { useValidationSchema } from '../utils/validators/useValidationSchema';
+import { isMember } from '../middleware/isMember';
 
 @ObjectType()
 class GearCategoryResponse {
@@ -103,7 +104,7 @@ export class GearCategoryResolver {
   }
 
   @Query(() => GetCategoriesResponse)
-  @UseMiddleware(isAuth)
+  @UseMiddleware(isAuth, isMember)
   async getCategories(
     @Arg('campsiteId', () => Int) campsiteId: number,
   ): Promise<GetCategoriesResponse> {

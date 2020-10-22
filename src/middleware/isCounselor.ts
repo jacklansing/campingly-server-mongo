@@ -9,6 +9,13 @@ export const isCounselor: MiddlewareFn<MyContext> = async (
   next,
 ) => {
   const campsiteId = parseInt(context.req.headers.csid as string);
+
+  if (!campsiteId) {
+    throw new AuthenticationError(
+      'Campsite identifier (csid) missing from request',
+    );
+  }
+
   const userId = context.req.session.userId;
 
   const isOwner = await Campsite.findOne({

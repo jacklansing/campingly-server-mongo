@@ -94,7 +94,6 @@ describe('Campsite Resolver', () => {
   });
 
   afterAll(async () => {
-    await Campsite.query(`truncate campsite restart identity cascade`);
     await conn.close();
   });
 

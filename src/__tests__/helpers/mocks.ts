@@ -149,3 +149,22 @@ export const getValidCampsite = () => {
 };
 
 export const getAllValidCampsites = () => validCampsites;
+
+const validGearCategores = [
+  'Food',
+  'Tents',
+  'First Aid',
+  'Paper Supplies',
+  'Fishing Supplies',
+  'Misc.',
+];
+
+export const getValidGearCategory = (): string => {
+  const category =
+    validGearCategores[
+      Math.floor(Math.random() * (validGearCategores.length - 1))
+    ];
+  return category;
+};
+
+export const getAllValidGearCategories = () => validGearCategores;
