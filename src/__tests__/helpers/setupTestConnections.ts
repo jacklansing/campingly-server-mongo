@@ -1,5 +1,6 @@
 import { createConnection } from 'typeorm';
 import entities from '../../utils/entities';
+import 'dotenv-safe/config';
 
 export default async () => {
   const connection = await createConnection({
@@ -13,7 +14,7 @@ export default async () => {
   });
 
   const databaseName = `campingly_test_template`;
-  const workers = parseInt(process.env.JEST_WORKERS || '3');
+  const workers = parseInt(process.env.JEST_WORKERS || '1');
 
   await connection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
   await connection.query(`CREATE DATABASE ${databaseName}`);

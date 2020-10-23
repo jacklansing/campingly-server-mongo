@@ -9,7 +9,7 @@ import {
 import { createCampsite, createUser } from './helpers/testHelpers';
 import { useRequest } from './helpers/useRequest';
 
-const CREATE_GEAR_CATEGORY_MUTATION = `
+export const CREATE_GEAR_CATEGORY_MUTATION = `
   mutation CreateGearCategory($campsiteId: Int!, $category: String!) {
     createGearCategory(campsiteId: $campsiteId, category: $category) {
       gearCategory {

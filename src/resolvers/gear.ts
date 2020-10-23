@@ -68,9 +68,7 @@ export class GearResolver {
   @UseMiddleware(isAuth)
   @UseMiddleware(isMember)
   async addGear(@Arg('input') input: GearInput): Promise<GearResponse> {
-    console.log('INPUT IS', input);
     const { errors } = await useValidationSchema(input, AddGearSchema);
-    console.log(errors);
 
     if (errors) return { errors };
 

@@ -82,6 +82,7 @@ const ME_QUERY = `
     }
   }
 `;
+
 describe('User Resolver', () => {
   let conn: Connection;
   beforeAll(async () => {

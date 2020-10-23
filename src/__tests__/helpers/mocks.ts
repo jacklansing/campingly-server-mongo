@@ -168,3 +168,46 @@ export const getValidGearCategory = (): string => {
 };
 
 export const getAllValidGearCategories = () => validGearCategores;
+
+const validGears = [
+  {
+    name: 'Burgers',
+    quantity: 12,
+  },
+  {
+    name: 'Burger Buns',
+    quantity: 12,
+  },
+  {
+    name: 'Hotdogs',
+    quantity: 24,
+  },
+  {
+    name: 'Hotdog Buns',
+    quantity: 24,
+  },
+  {
+    name: 'Toilet Paper Rolls',
+    quantity: 2,
+  },
+  {
+    name: '10 x 10 Canopy',
+    quantity: 2,
+  },
+  {
+    name: 'Fishing Rods',
+    quantity: 2,
+  },
+  {
+    name: 'Tackle Box',
+    quantity: 1,
+  },
+];
+
+export const getValidGear = (): { name: string; quantity: number } => {
+  const gear = validGears[Math.floor(Math.random() * (validGears.length - 1))];
+  return gear;
+};
+
+export const getAllValidGears = (): { name: string; quantity: number }[] =>
+  validGears;
