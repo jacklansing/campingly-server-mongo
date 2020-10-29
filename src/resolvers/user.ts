@@ -21,7 +21,7 @@ import { ApolloError } from 'apollo-server-express';
 
 export default {
   Query: {
-    me: async (_, __, { req }: MyContext) => {
+    me: async (_: undefined, __: {}, { req }: MyContext) => {
       if (!req.session.userId) {
         return null;
       }
@@ -31,9 +31,9 @@ export default {
   },
   Mutation: {
     register: async (
-      _,
+      _: undefined,
       { input }: MutationRegisterArgs,
-      { req, em }: MyContext,
+      { req }: MyContext,
     ): Promise<UserResponse> => {
       const { errors } = await useValidationSchema(input, RegisterSchema);
       if (errors) return { errors };
@@ -85,7 +85,7 @@ export default {
       return { user: createdUser };
     },
     login: async (
-      _,
+      _: undefined,
       { input: { usernameOrEmail, password } }: MutationLoginArgs,
       { req }: MyContext,
     ): Promise<UserResponse> => {
@@ -118,7 +118,11 @@ export default {
       req.session.userId = user.id;
       return { user: userInfo };
     },
-    logout: async (_, __, { req, res }: MyContext): Promise<LogoutResponse> => {
+    logout: async (
+      _: undefined,
+      __: {},
+      { req, res }: MyContext,
+    ): Promise<LogoutResponse> => {
       return new Promise((resolve) =>
         req.session.destroy((err) => {
           res.clearCookie(COOKIE_NAME);
@@ -137,7 +141,7 @@ export default {
       );
     },
     resetPassword: async (
-      _,
+      _: undefined,
       { input: { token, newPassword } }: MutationResetPasswordArgs,
       { redis, req }: MyContext,
     ): Promise<UserResponse> => {
@@ -187,7 +191,7 @@ export default {
       return { user: userObj };
     },
     forgotPassword: async (
-      _,
+      _: undefined,
       { email }: { email: string },
       { redis }: MyContext,
     ): Promise<Boolean> => {
