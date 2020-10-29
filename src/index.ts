@@ -7,25 +7,18 @@ import Redis from 'ioredis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
 import cors from 'cors';
-import { createConnection } from 'typeorm';
 import { createUserLoader } from './utils/createUserLoader';
-import { createSchema } from './utils/createSchema';
-import entities from './utils/entities';
+import mongoose from 'mongoose';
+import typeDefs from './schema/typeDefs';
+import userResolver from './resolvers/user';
+import { DIRECTIVES } from '@graphql-codegen/typescript-mongodb';
 
 const main = async () => {
-  // Connection config loaded automatically.
-  // See ormconfig.ts
-  const conn = await createConnection({
-    type: 'postgres',
-    url: process.env.DATABASE_URL,
-    logging: true,
-    synchronize: false,
-    entities: entities,
-    migrations: ['/src/migrations/*.{ts,js}'],
-    cache: true,
+  await mongoose.connect(process.env.MONGO_DB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
   });
-  // Run migrations after connection
-  await conn.runMigrations();
 
   const app = express();
 
@@ -59,9 +52,9 @@ const main = async () => {
     }),
   );
 
-  const schema = await createSchema();
   const apolloServer = new ApolloServer({
-    schema,
+    typeDefs: [DIRECTIVES, typeDefs],
+    resolvers: [userResolver],
     context: ({ req, res }) => ({
       req,
       res,

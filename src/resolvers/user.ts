@@ -1,262 +1,214 @@
 import argon2 from 'argon2';
 import { MyContext } from 'src/types';
-import {
-  Arg,
-  Ctx,
-  Field,
-  FieldResolver,
-  Mutation,
-  ObjectType,
-  Query,
-  Resolver,
-  Root,
-} from 'type-graphql';
 import { v4 } from 'uuid';
 import { COOKIE_NAME, FORGOT_PASS_PREFIX } from '../constants';
-import { User } from '../entities/User';
 import sendForgotPasswordEmail from '../utils/sendForgotPasswordEmail';
 import {
   PasswordResetSchema,
   RegisterSchema,
 } from '../utils/validators/UserSchemas';
 import { useValidationSchema } from '../utils/validators/useValidationSchema';
-import { UsernamePasswordInput } from './UsernamePasswordInput';
+import UserModel from '../models/user';
+import {
+  MutationLoginArgs,
+  MutationRegisterArgs,
+  UserResponse,
+  User,
+  MutationResetPasswordArgs,
+  LogoutResponse,
+} from '../generated/graphql';
+import { ApolloError } from 'apollo-server-express';
 
-@ObjectType()
-export class FieldError {
-  @Field()
-  field: string;
+export default {
+  Query: {
+    me: async (_, __, { req }: MyContext) => {
+      if (!req.session.userId) {
+        return null;
+      }
 
-  @Field()
-  message: string;
-}
+      return UserModel.findById(req.session.userId).exec();
+    },
+  },
+  Mutation: {
+    register: async (
+      _,
+      { input }: MutationRegisterArgs,
+      { req, em }: MyContext,
+    ): Promise<UserResponse> => {
+      const { errors } = await useValidationSchema(input, RegisterSchema);
+      if (errors) return { errors };
 
-@ObjectType()
-class UserResponse {
-  @Field(() => [FieldError], { nullable: true })
-  errors?: FieldError[];
+      // Check to see if username is already taken
+      const usernameTaken = await UserModel.findOne({
+        username: input.username,
+      }).exec();
 
-  @Field(() => User, { nullable: true })
-  user?: User;
-}
+      if (usernameTaken) {
+        return {
+          errors: [
+            {
+              field: 'username',
+              message: 'already taken',
+            },
+          ],
+        };
+      }
+      const emailTaken = await UserModel.findOne({ email: input.email });
+      if (emailTaken) {
+        return {
+          errors: [
+            {
+              field: 'email',
+              message: 'account already exists using that email',
+            },
+          ],
+        };
+      }
 
-@ObjectType()
-export class ErrorMessage {
-  @Field(() => String)
-  message: string;
-}
+      const hashedPassword = await argon2.hash(input.password);
+      const user = new UserModel({
+        username: input.username,
+        displayName: input.displayName,
+        password: hashedPassword,
+        email: input.email,
+      });
+      try {
+        // Save user to database
+        await user.save();
+      } catch {
+        throw new ApolloError('Error adding new user');
+      }
+      // store user id session
+      // set a cookie on the user and keep them logged in
+      req.session.userId = user.id;
+      const createdUser = user.toObject();
+      return { user: createdUser };
+    },
+    login: async (
+      _,
+      { input: { usernameOrEmail, password } }: MutationLoginArgs,
+      { req }: MyContext,
+    ): Promise<UserResponse> => {
+      const user = await UserModel.findOne({
+        $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+      });
+      if (!user) {
+        return {
+          errors: [
+            {
+              field: 'usernameOrEmail',
+              message: "that account doesn't exist",
+            },
+          ],
+        };
+      }
+      const userInfo = user.toObject();
+      const valid = await argon2.verify(userInfo.password, password);
+      if (!valid) {
+        return {
+          errors: [
+            {
+              field: 'password',
+              message: 'incorrect password',
+            },
+          ],
+        };
+      }
 
-@ObjectType()
-class LogoutError {
-  @Field(() => String, { nullable: true })
-  errors?: ErrorMessage[];
-}
+      req.session.userId = user.id;
+      return { user: userInfo };
+    },
+    logout: async (_, __, { req, res }: MyContext): Promise<LogoutResponse> => {
+      return new Promise((resolve) =>
+        req.session.destroy((err) => {
+          res.clearCookie(COOKIE_NAME);
+          if (err) {
+            resolve({
+              success: false,
+              errors: [
+                {
+                  message: 'There was an error logging out',
+                },
+              ],
+            });
+          }
+          resolve({ success: true });
+        }),
+      );
+    },
+    resetPassword: async (
+      _,
+      { input: { token, newPassword } }: MutationResetPasswordArgs,
+      { redis, req }: MyContext,
+    ): Promise<UserResponse> => {
+      const { errors } = await useValidationSchema(
+        { password: newPassword },
+        PasswordResetSchema,
+      );
+      if (errors) return { errors };
+      const redisKey = FORGOT_PASS_PREFIX + token;
+      const userId = await redis.get(redisKey);
+      if (!userId) {
+        return {
+          errors: [
+            {
+              field: 'token',
+              message: 'token expired',
+            },
+          ],
+        };
+      }
+      const user = await UserModel.findOne({ id: userId });
 
-@Resolver(User)
-export class UserResolver {
-  @FieldResolver(() => String)
-  email(@Root() user: User, @Ctx() { req }: MyContext) {
-    // Okay to show user their own email
-    if (req.session.userId === user.id) {
-      return user.email;
-    }
-    // Hide e-mail when not that user
-    return '';
-  }
+      if (!user) {
+        return {
+          errors: [
+            {
+              field: 'token',
+              message: 'user no longer exists',
+            },
+          ],
+        };
+      }
 
-  @Query(() => User, { nullable: true })
-  me(@Ctx() { req }: MyContext) {
-    // If you are not logged in, receive null
-    if (!req.session.userId) {
-      return null;
-    }
+      const hashedPassword = await argon2.hash(newPassword);
+      //@ts-ignore
+      user.password = hashedPassword;
+      try {
+        await user.save();
+      } catch {
+        throw new ApolloError('Error saving new password');
+      }
+      // Delete token so that it cannot be reused after pw change
+      await redis.del(redisKey);
+      // Login user after change password (optional)
+      req.session.userId = user.id;
+      const userObj: User = user.toObject();
+      return { user: userObj };
+    },
+    forgotPassword: async (
+      _,
+      { email }: { email: string },
+      { redis }: MyContext,
+    ): Promise<Boolean> => {
+      const user = await UserModel.findOne({ email });
+      if (!user) {
+        // Email is not in the database.
+        await new Promise((r) => setTimeout(r, 500));
+        return true;
+      }
+      const token = v4();
 
-    return User.findOne(req.session.userId);
-  }
+      await redis.set(
+        FORGOT_PASS_PREFIX + token,
+        user.id,
+        'ex',
+        1000 * 60 * 60 * 24 * 3,
+      );
 
-  @Mutation(() => UserResponse)
-  async register(
-    @Arg('input', () => UsernamePasswordInput) input: UsernamePasswordInput,
-    @Ctx() { req }: MyContext,
-  ): Promise<UserResponse> {
-    const { errors } = await useValidationSchema(input, RegisterSchema);
-    if (errors) return { errors };
+      await sendForgotPasswordEmail(email, token);
 
-    // Check to see if username is already taken
-    const usernameTaken = await User.findOne({
-      where: { username: input.username },
-    });
-    if (usernameTaken) {
-      return {
-        errors: [
-          {
-            field: 'username',
-            message: 'already taken',
-          },
-        ],
-      };
-    }
-
-    const emailTaken = await User.findOne({
-      where: { email: input.email },
-    });
-
-    if (emailTaken) {
-      return {
-        errors: [
-          {
-            field: 'email',
-            message: 'account already exists using that email',
-          },
-        ],
-      };
-    }
-
-    const hashedPassword = await argon2.hash(input.password);
-    const user = await User.create({
-      username: input.username,
-      password: hashedPassword,
-      email: input.email,
-    });
-    try {
-      // Save user to database
-      await user.save();
-    } catch {
-      console.error('error inserting new user');
-    }
-    // store user id session
-    // set a cookie on the user and keep them logged in
-    req.session.userId = user.id;
-    return { user };
-  }
-
-  @Mutation(() => UserResponse)
-  async login(
-    @Arg('usernameOrEmail') usernameOrEmail: string,
-    @Arg('password') password: string,
-    @Ctx() { req }: MyContext,
-  ): Promise<UserResponse> {
-    const user = await User.findOne({
-      where: [{ email: usernameOrEmail }, { username: usernameOrEmail }],
-    });
-
-    if (!user) {
-      return {
-        errors: [
-          {
-            field: 'usernameOrEmail',
-            message: "that account doesn't exist",
-          },
-        ],
-      };
-    }
-
-    const valid = await argon2.verify(user.password, password);
-    if (!valid) {
-      return {
-        errors: [
-          {
-            field: 'password',
-            message: 'incorrect password',
-          },
-        ],
-      };
-    }
-
-    req.session.userId = user.id;
-    return {
-      user,
-    };
-  }
-
-  @Mutation(() => UserResponse)
-  async logout(@Ctx() { req, res }: MyContext): Promise<User | LogoutError> {
-    return new Promise((resolve) =>
-      req.session.destroy((err) => {
-        res.clearCookie(COOKIE_NAME);
-        if (err) {
-          resolve({
-            errors: [
-              {
-                message: 'There was an error logging out',
-              },
-            ],
-          });
-        }
-        resolve({});
-      }),
-    );
-  }
-
-  @Mutation(() => UserResponse)
-  async changePassword(
-    @Arg('token') token: string,
-    @Arg('newPassword') newPassword: string,
-    @Ctx() { redis, req }: MyContext,
-  ): Promise<UserResponse> {
-    const { errors } = await useValidationSchema(
-      { password: newPassword },
-      PasswordResetSchema,
-    );
-    if (errors) return { errors };
-    const redisKey = FORGOT_PASS_PREFIX + token;
-    const userId = await redis.get(redisKey);
-    if (!userId) {
-      return {
-        errors: [
-          {
-            field: 'token',
-            message: 'token expired',
-          },
-        ],
-      };
-    }
-    const userIdNum = parseInt(userId);
-    const user = await User.findOne(userIdNum);
-
-    if (!user) {
-      return {
-        errors: [
-          {
-            field: 'token',
-            message: 'user no longer exists',
-          },
-        ],
-      };
-    }
-
-    const hashedPassword = await argon2.hash(newPassword);
-    await User.update({ id: userIdNum }, { password: hashedPassword });
-    // Delete token so that it cannot be reused after pw change
-    await redis.del(redisKey);
-    // Login user after change password (optional)
-    req.session.userId = user.id;
-
-    return { user };
-  }
-
-  @Mutation(() => Boolean)
-  async forgotPassword(
-    @Arg('email') email: string,
-    @Ctx() { redis }: MyContext,
-  ) {
-    const user = await User.findOne({ where: { email } });
-    if (!user) {
-      // Email is not in the database.
-      await new Promise((r) => setTimeout(r, 500));
       return true;
-    }
-    const token = v4();
-
-    await redis.set(
-      FORGOT_PASS_PREFIX + token,
-      user.id,
-      'ex',
-      1000 * 60 * 60 * 24 * 3,
-    );
-
-    await sendForgotPasswordEmail(email, token);
-
-    return true;
-  }
-}
+    },
+  },
+};

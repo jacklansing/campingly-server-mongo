@@ -16,7 +16,6 @@ import {
 import { Gear } from '../entities/Gear';
 import { GearCategory } from '../entities/GearCategory';
 import { isAuth } from '../middleware/isAuth';
-import { ErrorMessage, FieldError } from './user';
 import { isCounselor } from '../middleware/isCounselor';
 import { isMember } from '../middleware/isMember';
 import { MyContext } from '../types';
