@@ -1,55 +1,65 @@
 import { gql } from 'apollo-server-express';
 
 const typeDefs = gql`
-  type User @entity {
-    id: String @id
-    username: String! @column
-    displayName: String! @column
-    email: String! @column
-    createdAt: String! @column
-    updatedAt: String! @column
-    campsites: [Campsite]! @link
+  directive @objectAuth(requires: Role = LOGIN) on OBJECT
+  directive @fieldAuth(requires: Role = LOGIN) on FIELD_DEFINITION
+
+  enum Role {
+    LOGIN
+    USER
+    COUNSELOR
+    MANAGER
   }
 
-  type Campsite @entity {
-    id: String @id
-    name: String! @column
-    startingDate: String! @column
-    endingDate: String! @column
-    manager: User! @link
-    counselors: [User]! @link
-    campers: [User]! @link
-    gearCategories: [GearCategory] @embedded
+  type User {
+    id: ObjectID
+    username: String!
+    displayName: String!
+    email: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
-  type GearCategory @entity(embedded: true) {
-    category: String! @column
-    gear: [Gear] @embedded
+  type Campsite {
+    id: ObjectID
+    name: String!
+    startingDate: DateTime!
+    endingDate: DateTime!
+    manager: User!
+    counselors: [User]!
+    campers: [User]!
+    gearCategories: [GearCategory]
   }
 
-  type Gear @entity(embedded: true) {
-    name: String! @column
-    quantity: Int! @column
-    volunteers: [GearVolunteer]! @embedded
+  type GearCategory {
+    category: String!
+    gear: [Gear]
   }
 
-  type GearVolunteer @entity(embedded: true) {
-    userId: User! @link
-    volunteerAmount: Int! @column
+  type Gear {
+    name: String!
+    quantity: Int!
+    volunteers: [GearVolunteer]!
+    userHasVolunteered: Boolean!
+  }
+
+  type GearVolunteer {
+    userId: ObjectID!
+    volunteerAmount: Int!
   }
 
   type ErrorMessage {
     message: String!
   }
 
-  type FieldErrors {
+  type FieldError {
     field: String!
     message: String!
   }
 
   type UserResponse {
     user: User
-    errors: [FieldErrors]
+    errors: [FieldError]
   }
 
   type LogoutResponse {
@@ -57,9 +67,16 @@ const typeDefs = gql`
     errors: [ErrorMessage]
   }
 
+  type CampsiteResponse {
+    campsite: Campsite
+    errors: [FieldError]
+  }
+
   type Query {
     me: User
     getCampsite(campsiteId: String!): Campsite
+    allCampsites: [Campsite]!
+    myCampsites: [Campsite]!
   }
 
   type Mutation {
@@ -68,6 +85,12 @@ const typeDefs = gql`
     logout: LogoutResponse
     forgotPassword(email: String!): Boolean
     resetPassword(input: ResetPasswordInput!): UserResponse
+    createCampsite(input: CreateCampsiteInput!): CampsiteResponse
+    createGearCategory(input: CreateGearCategoryInput!): CampsiteResponse
+    addGear(input: AddGearInput!): CampsiteResponse
+    deleteGear(input: DeleteGearInput!): CampsiteResponse
+    volunteerGear(input: VolunteerGearInput!): CampsiteResponse
+    undoVolunteerGear(input: UndoVolunteerGearInput!): CampsiteResponse
   }
 
   input RegistrationInput {
@@ -85,6 +108,43 @@ const typeDefs = gql`
   input ResetPasswordInput {
     token: String!
     newPassword: String!
+  }
+
+  input CreateCampsiteInput {
+    name: String!
+    startingDate: DateTime!
+    endingDate: DateTime!
+  }
+
+  input CreateGearCategoryInput {
+    category: String!
+    campsiteId: ObjectID!
+  }
+
+  input AddGearInput {
+    campsiteId: ObjectID!
+    gearCategoryName: String!
+    name: String!
+    quantity: Int!
+  }
+
+  input DeleteGearInput {
+    campsiteId: ObjectID!
+    gearCategoryName: String!
+    gearName: String!
+  }
+
+  input VolunteerGearInput {
+    campsiteId: ObjectID!
+    gearCategoryName: String!
+    gearName: String!
+    volunteerAmount: Int!
+  }
+
+  input UndoVolunteerGearInput {
+    campsiteId: ObjectID!
+    gearCategoryName: String!
+    gearName: String!
   }
 `;
 

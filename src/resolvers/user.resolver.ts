@@ -9,15 +9,14 @@ import {
 } from '../utils/validators/UserSchemas';
 import { useValidationSchema } from '../utils/validators/useValidationSchema';
 import UserModel from '../models/user';
+import { ApolloError } from 'apollo-server-express';
 import {
+  LogoutResponse,
   MutationLoginArgs,
   MutationRegisterArgs,
-  UserResponse,
-  User,
   MutationResetPasswordArgs,
-  LogoutResponse,
-} from '../generated/graphql';
-import { ApolloError } from 'apollo-server-express';
+  UserResponse,
+} from './types/user.types';
 
 export default {
   Query: {
@@ -26,7 +25,12 @@ export default {
         return null;
       }
 
-      return UserModel.findById(req.session.userId).exec();
+      // return UserModel.findById(req.session.userId).exec();
+      const user = await UserModel.findById(req.session.userId)
+        .populate('campsites')
+        .exec();
+      console.log(user);
+      return user;
     },
   },
   Mutation: {
@@ -81,8 +85,7 @@ export default {
       // store user id session
       // set a cookie on the user and keep them logged in
       req.session.userId = user.id;
-      const createdUser = user.toObject();
-      return { user: createdUser };
+      return { user };
     },
     login: async (
       _: undefined,
@@ -102,8 +105,7 @@ export default {
           ],
         };
       }
-      const userInfo = user.toObject();
-      const valid = await argon2.verify(userInfo.password, password);
+      const valid = await argon2.verify(user.password, password);
       if (!valid) {
         return {
           errors: [
@@ -116,7 +118,7 @@ export default {
       }
 
       req.session.userId = user.id;
-      return { user: userInfo };
+      return { user };
     },
     logout: async (
       _: undefined,
@@ -187,8 +189,7 @@ export default {
       await redis.del(redisKey);
       // Login user after change password (optional)
       req.session.userId = user.id;
-      const userObj: User = user.toObject();
-      return { user: userObj };
+      return { user };
     },
     forgotPassword: async (
       _: undefined,

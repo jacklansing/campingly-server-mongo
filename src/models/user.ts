@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+import { IUserDocument } from 'src/resolvers/types/user.types';
 
 const userSchema = new Schema(
   {
@@ -6,16 +7,10 @@ const userSchema = new Schema(
     displayName: { type: String, required: true, unique: false },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true, unique: false },
-    campsites: [
-      {
-        id: { type: Schema.Types.ObjectId, ref: 'Campsite' },
-        name: String,
-        startingDate: Date,
-        endingDate: Date,
-      },
-    ],
+    userCampsites: [{ type: Schema.Types.ObjectId, ref: 'Campsite' }],
+    memberCampsites: [{ type: Schema.Types.ObjectId, ref: 'Campsite' }],
   },
   { timestamps: true },
 );
 
-export default mongoose.model('User', userSchema);
+export default mongoose.model<IUserDocument>('User', userSchema);

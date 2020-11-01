@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import 'dotenv-safe/config';
 import { __prod__, COOKIE_NAME } from './constants';
 import express from 'express';
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer, makeExecutableSchema } from 'apollo-server-express';
 import Redis from 'ioredis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
@@ -10,8 +10,12 @@ import cors from 'cors';
 import { createUserLoader } from './utils/createUserLoader';
 import mongoose from 'mongoose';
 import typeDefs from './schema/typeDefs';
-import userResolver from './resolvers/user';
-import { DIRECTIVES } from '@graphql-codegen/typescript-mongodb';
+import userResolver from './resolvers/user.resolver';
+import campsiteResolver from './resolvers/campsite.resolver';
+import {
+  typeDefs as customScalarTypeDefs,
+  resolvers as customScalarResolvers,
+} from 'graphql-scalars';
 
 const main = async () => {
   await mongoose.connect(process.env.MONGO_DB_URL, {
@@ -53,8 +57,10 @@ const main = async () => {
   );
 
   const apolloServer = new ApolloServer({
-    typeDefs: [DIRECTIVES, typeDefs],
-    resolvers: [userResolver],
+    schema: makeExecutableSchema({
+      typeDefs: [...customScalarTypeDefs, typeDefs],
+      resolvers: [customScalarResolvers, userResolver, campsiteResolver],
+    }),
     context: ({ req, res }) => ({
       req,
       res,

@@ -1,6 +1,6 @@
 import { ValidationError } from 'apollo-server-express';
+import { FieldError } from '../../resolvers/types/shared.types';
 import { ObjectSchema } from 'yup';
-import { FieldError } from '../../resolvers/user';
 
 export const useValidationSchema = async (
   values: object,

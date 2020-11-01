@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+import { ICampsiteDocument } from 'src/resolvers/types/campsite.types';
 
 const campsiteSchema = new Schema(
   {
@@ -6,8 +7,9 @@ const campsiteSchema = new Schema(
     startingDate: { type: Date, required: true, unique: false },
     endingDate: { type: Date, required: true, unique: false },
     manager: {
-      id: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-      displayName: { type: String },
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: 'User',
     },
     counselors: [
       {
@@ -44,4 +46,4 @@ const campsiteSchema = new Schema(
   { timestamps: true },
 );
 
-export default mongoose.model('Campsite', campsiteSchema);
+export default mongoose.model<ICampsiteDocument>('Campsite', campsiteSchema);
