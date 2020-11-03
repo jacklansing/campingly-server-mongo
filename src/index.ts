@@ -7,7 +7,6 @@ import Redis from 'ioredis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
 import cors from 'cors';
-import { createUserLoader } from './utils/createUserLoader';
 import mongoose from 'mongoose';
 import typeDefs from './schema/typeDefs';
 import userResolver from './resolvers/user.resolver';
@@ -65,7 +64,6 @@ const main = async () => {
       req,
       res,
       redis,
-      userLoader: createUserLoader(),
     }),
   });
 

@@ -1,6 +1,6 @@
 import { graphql, GraphQLSchema } from 'graphql';
 import { Maybe } from 'type-graphql';
-import { createSchema } from '../../utils/createSchema';
+import { buildSchema } from '../../utils/buildSchema';
 import { MockRedis } from './MockRedis';
 
 interface Options {
@@ -25,7 +25,7 @@ export const useRequest = async ({
   redis = new MockRedis(),
 }: Options) => {
   if (!schema) {
-    schema = await createSchema();
+    schema = buildSchema();
   }
   return graphql({
     schema,
