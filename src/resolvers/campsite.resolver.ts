@@ -189,8 +189,7 @@ export default {
       }
 
       const categoryIdx = campsite.gearCategories.findIndex(
-        (gc) =>
-          gc.category.toLowerCase() === input.gearCategoryName.toLowerCase(),
+        (gc) => gc.id === input.gearCategoryId,
       );
 
       if (categoryIdx === -1) throw new ApolloError('Category does not exist');
@@ -229,9 +228,7 @@ export default {
     },
     deleteGear: async (
       _: undefined,
-      {
-        input: { campsiteId, gearCategoryName, gearName },
-      }: MutationDeleteGearArgs,
+      { input: { campsiteId, gearCategoryId, gearId } }: MutationDeleteGearArgs,
     ): Promise<CampsiteResponse> => {
       const campsite = await CampsiteModel.findById(campsiteId);
       if (!campsite) {
@@ -239,11 +236,11 @@ export default {
       }
 
       const categoryIdx = campsite.gearCategories.findIndex(
-        (gc) => gc.category.toLowerCase() === gearCategoryName.toLowerCase(),
+        (gc) => gc.id === gearCategoryId,
       );
 
       const gearIdx = campsite.gearCategories[categoryIdx].gear.findIndex(
-        (g) => g.name.toLowerCase() === gearName.toLowerCase(),
+        (g) => g.id === gearId,
       );
 
       if (gearIdx === -1) {
@@ -263,7 +260,7 @@ export default {
     volunteerGear: async (
       _: undefined,
       {
-        input: { campsiteId, gearCategoryName, gearName, volunteerAmount },
+        input: { campsiteId, gearCategoryId, gearId, volunteerAmount },
       }: MutationVolunteerGearArgs,
       { req }: MyContext,
     ) => {
@@ -273,11 +270,11 @@ export default {
       }
 
       const categoryIdx = campsite.gearCategories.findIndex(
-        (gc) => gc.category.toLowerCase() === gearCategoryName.toLowerCase(),
+        (gc) => gc.id === gearCategoryId,
       );
 
       const gearIdx = campsite.gearCategories[categoryIdx].gear.findIndex(
-        (g) => g.name.toLowerCase() === gearName.toLowerCase(),
+        (g) => g.id === gearId,
       );
 
       if (gearIdx === -1) {
@@ -328,7 +325,7 @@ export default {
     undoVolunteerGear: async (
       _: undefined,
       {
-        input: { campsiteId, gearCategoryName, gearName },
+        input: { campsiteId, gearCategoryId, gearId },
       }: MutationUndoVolunteerGearArgs,
       { req }: MyContext,
     ): Promise<CampsiteResponse> => {
@@ -338,11 +335,11 @@ export default {
       }
 
       const categoryIdx = campsite.gearCategories.findIndex(
-        (gc) => gc.category.toLowerCase() === gearCategoryName.toLowerCase(),
+        (gc) => gc.id === gearCategoryId,
       );
 
       const gearIdx = campsite.gearCategories[categoryIdx].gear.findIndex(
-        (g) => g.name.toLowerCase() === gearName.toLowerCase(),
+        (g) => g.id === gearId,
       );
 
       if (gearIdx === -1) {
@@ -354,7 +351,7 @@ export default {
       ].volunteers.findIndex((v) => v.userId.toString() === req.session.userId);
 
       if (volunteerIdx === -1) {
-        throw new ApolloError('Error locating volunteer to remove');
+        throw new ApolloError('Could not locate volunteer to remove');
       }
 
       campsite.gearCategories[categoryIdx].gear[gearIdx].volunteers.splice(

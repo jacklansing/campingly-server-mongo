@@ -32,11 +32,13 @@ const typeDefs = gql`
   }
 
   type GearCategory {
+    id: ObjectID
     category: String!
     gear: [Gear]
   }
 
   type Gear {
+    id: ObjectID
     name: String!
     quantity: Int!
     volunteers: [GearVolunteer]!
@@ -123,28 +125,28 @@ const typeDefs = gql`
 
   input AddGearInput {
     campsiteId: ObjectID!
-    gearCategoryName: String!
+    gearCategoryId: ObjectID!
     name: String!
     quantity: Int!
   }
 
   input DeleteGearInput {
     campsiteId: ObjectID!
-    gearCategoryName: String!
-    gearName: String!
+    gearCategoryId: ObjectID!
+    gearId: ObjectID!
   }
 
   input VolunteerGearInput {
     campsiteId: ObjectID!
-    gearCategoryName: String!
-    gearName: String!
+    gearCategoryId: ObjectID!
+    gearId: ObjectID!
     volunteerAmount: Int!
   }
 
   input UndoVolunteerGearInput {
     campsiteId: ObjectID!
-    gearCategoryName: String!
-    gearName: String!
+    gearCategoryId: ObjectID!
+    gearId: ObjectID!
   }
 `;
 

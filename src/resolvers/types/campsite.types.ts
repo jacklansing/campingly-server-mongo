@@ -16,17 +16,20 @@ export interface ICampsiteDocument extends ICampsite, Document {}
 export interface ICampsiteModel extends Model<ICampsiteDocument> {}
 
 export interface IGearCategory {
+  id?: Schema.Types.ObjectId;
   category: string;
   gear: IGear[];
 }
 
 export interface IGear {
+  id?: Schema.Types.ObjectId;
   name: string;
   quantity: number;
   volunteers: IGearVolunteer[];
 }
 
 export interface IGearVolunteer {
+  id?: Schema.Types.ObjectId;
   userId: Schema.Types.ObjectId;
   volunteerAmount: number;
 }
@@ -49,7 +52,7 @@ export type MutationCreateGearCategoryArgs = {
 export type MutationAddGearArgs = {
   input: {
     campsiteId: Schema.Types.ObjectId;
-    gearCategoryName: string;
+    gearCategoryId: Schema.Types.ObjectId;
     name: string;
     quantity: number;
   };
@@ -58,16 +61,16 @@ export type MutationAddGearArgs = {
 export type MutationDeleteGearArgs = {
   input: {
     campsiteId: Schema.Types.ObjectId;
-    gearCategoryName: string;
-    gearName: string;
+    gearCategoryId: Schema.Types.ObjectId;
+    gearId: Schema.Types.ObjectId;
   };
 };
 
 export type MutationVolunteerGearArgs = {
   input: {
     campsiteId: Schema.Types.ObjectId;
-    gearCategoryName: string;
-    gearName: string;
+    gearCategoryId: Schema.Types.ObjectId;
+    gearId: Schema.Types.ObjectId;
     volunteerAmount: number;
   };
 };
@@ -75,8 +78,8 @@ export type MutationVolunteerGearArgs = {
 export type MutationUndoVolunteerGearArgs = {
   input: {
     campsiteId: Schema.Types.ObjectId;
-    gearCategoryName: string;
-    gearName: string;
+    gearCategoryId: Schema.Types.ObjectId;
+    gearId: Schema.Types.ObjectId;
   };
 };
 
