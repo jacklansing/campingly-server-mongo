@@ -1,5 +1,5 @@
 import Schema, { Document, Model } from 'mongoose';
-import { ErrorMessage, FieldError } from './shared.types';
+import { FieldError } from './shared.types';
 import { IUser } from './user.types';
 
 export interface ICampsite {
