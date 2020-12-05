@@ -54,7 +54,8 @@ export const register = async (
   try {
     // Save user to database
     await user.save();
-  } catch {
+  } catch (e) {
+    console.error(e);
     throw new ApolloError('Error adding new user');
   }
   // store user id session

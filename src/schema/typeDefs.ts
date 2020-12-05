@@ -14,7 +14,7 @@ const typeDefs = gql`
   type User {
     id: ObjectID
     username: String!
-    displayName: String!
+    displayName: String
     email: String!
     createdAt: DateTime!
     updatedAt: DateTime!

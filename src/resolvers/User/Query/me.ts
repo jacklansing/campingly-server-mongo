@@ -10,6 +10,5 @@ export const me = async (_: undefined, __: {}, { req }: MyContext) => {
   const user = await UserModel.findById(req.session.userId)
     .populate('campsites')
     .exec();
-  console.log(user);
   return user;
 };

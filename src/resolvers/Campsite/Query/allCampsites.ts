@@ -9,8 +9,9 @@ export const allCampsites = async (
 ): Promise<ICampsite[]> => {
   const userId = req.session.userId;
   const user = await UserModel.findById(userId)
-    .populate('userCampsites', 'name startingDate endingDate')
-    .populate('memberCampsites', 'name startingDate endingDate')
+    .populate('userCampsites', 'name startingDate endingDate manager')
+    .populate('memberCampsites', 'name startingDate endingDate manager')
+    .populate('manager')
     .exec();
   return [
     ...((user?.userCampsites as any) as ICampsite[]),
