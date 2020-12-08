@@ -16,7 +16,7 @@ export const createCampsite = async (
 ): Promise<CampsiteResponse> => {
   const alreadyUsed = await CampsiteModel.findOne({
     name: input.name as string,
-    managerId: req.session.userId,
+    manager: req.session.userId,
   }).exec();
 
   if (alreadyUsed) {

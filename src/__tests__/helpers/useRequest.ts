@@ -1,4 +1,5 @@
 import { graphql, GraphQLSchema } from 'graphql';
+import Schema from 'mongoose';
 import { Maybe } from 'type-graphql';
 import { buildSchema } from '../../utils/buildSchema';
 import { MockRedis } from './MockRedis';
@@ -6,8 +7,8 @@ import { MockRedis } from './MockRedis';
 interface Options {
   source: string;
   variableValues?: Maybe<{ [key: string]: any }>;
-  userId?: number;
-  csid?: number;
+  userId?: string;
+  csid?: Schema.Types.ObjectId;
   clearCookie?: jest.Mock<any, any>;
   destroy?: jest.Mock<any, any>;
   redis?: MockRedis;
