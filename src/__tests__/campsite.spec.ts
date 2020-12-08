@@ -75,6 +75,7 @@ describe('Campsite Resolver', () => {
 
   afterEach(async () => {
     await mongoose.connection.collection('users').deleteMany({});
+    await mongoose.connection.collection('campsites').deleteMany({});
   });
 
   afterAll(async () => {
