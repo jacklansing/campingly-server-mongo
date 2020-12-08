@@ -32,7 +32,8 @@ export const resetPassword = async (
       ],
     };
   }
-  const user = await UserModel.findOne({ id: userId });
+
+  const user = await UserModel.findById(userId);
 
   if (!user) {
     return {

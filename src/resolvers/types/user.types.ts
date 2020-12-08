@@ -4,6 +4,7 @@ import { ErrorMessage, FieldError } from './shared.types';
 export interface IUser {
   username: string;
   password: string;
+  email?: string;
   createdAt: Date;
   updatedAt: Date;
   userCampsites: Schema.Types.ObjectId[];
