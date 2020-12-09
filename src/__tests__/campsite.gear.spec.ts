@@ -11,26 +11,26 @@ import UserModel from '../models/user';
 import { createCampsite, createGearCategory } from './helpers/testHelpers';
 
 const ADD_GEAR_MUTATION = `
-    mutation AddGear($input: AddGearInput!) {
-        addGear(input: $input) {
-      campsite{
+  mutation AddGear($input: AddGearInput!) {
+    addGear(input: $input) {
+      campsite {
         id
         gearCategories {
+          id
+          category
+          gear {
             id
-            category
-            gear {
-                id
-                name
-                quantity
-            }
+            name
+            quantity
+          }
         }
       }
-        errors {
-            field
-            message
-        }
-        }
+      errors {
+        field
+        message
+      }
     }
+  }
 `;
 
 const mongod = new MongoMemoryServer();

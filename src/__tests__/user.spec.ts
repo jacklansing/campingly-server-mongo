@@ -8,12 +8,12 @@ import { MockRedis } from './helpers/MockRedis';
 import { FORGOT_PASS_PREFIX } from '../constants';
 
 const REGISTER_MUTATION = `
-  mutation register($input: RegistrationInput!){
+  mutation register($input: RegistrationInput!) {
     register(input: $input) {
-    errors {
-      field
-      message
-    }
+      errors {
+        field
+        message
+      }
       user {
         username
         id
@@ -29,10 +29,10 @@ const LOGIN_MUTATION = `
         field
         message
       }
-        user {
-          username
-          id
-        }
+      user {
+        username
+        id
+      }
     }
   }
 `;

@@ -13,19 +13,19 @@ import { createCampsite } from './helpers/testHelpers';
 
 export const CREATE_CAMPSITE_MUTATION = `
   mutation CreateCampsite($input: CreateCampsiteInput!) {
-      createCampsite(input: $input) {
-        campsite {
-          id
-          name
-          startingDate
-          endingDate
-        }
-        errors {
-          field
-          message
-        }
+    createCampsite(input: $input) {
+      campsite {
+        id
+        name
+        startingDate
+        endingDate
+      }
+      errors {
+        field
+        message
       }
     }
+  }
 `;
 
 const ALL_CAMPSITES_QUERY = `
@@ -51,7 +51,7 @@ const MY_CAMPSITES_QUERY = `
 `;
 
 const GET_CAMPSITE_QUERY = `
-  query GetCampsite($campsiteId: String!){
+  query GetCampsite($campsiteId: String!) {
     getCampsite(campsiteId: $campsiteId) {
       id
       name

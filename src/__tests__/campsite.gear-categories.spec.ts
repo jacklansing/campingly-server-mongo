@@ -14,11 +14,11 @@ export const CREATE_GEAR_CATEGORY_MUTATION = `
   mutation CreateGearCategory($input: CreateGearCategoryInput!) {
     createGearCategory(input: $input) {
       campsite {
+        id
+        gearCategories {
           id
-          gearCategories {
-              id
-              category
-          }
+          category
+        }
       }
       errors {
         field
@@ -29,15 +29,15 @@ export const CREATE_GEAR_CATEGORY_MUTATION = `
 `;
 
 const GET_CAMPSITE_QUERY = `
-query GetCampsite($campsiteId: String!){
-  getCampsite(campsiteId: $campsiteId) {
+  query GetCampsite($campsiteId: String!) {
+    getCampsite(campsiteId: $campsiteId) {
+      id
+      gearCategories {
         id
-        gearCategories {
-            id
-            category
-        }
+        category
+      }
     }
-}
+  }
 `;
 
 const mongod = new MongoMemoryServer();
