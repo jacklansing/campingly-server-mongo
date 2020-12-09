@@ -7,7 +7,7 @@ import { MockRedis } from './MockRedis';
 interface Options {
   source: string;
   variableValues?: Maybe<{ [key: string]: any }>;
-  userId?: string;
+  userId?: Schema.Types.ObjectId;
   csid?: Schema.Types.ObjectId;
   clearCookie?: jest.Mock<any, any>;
   destroy?: jest.Mock<any, any>;
