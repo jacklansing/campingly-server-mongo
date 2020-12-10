@@ -1,7 +1,7 @@
 import { graphql, GraphQLSchema } from 'graphql';
 import Schema from 'mongoose';
 import { Maybe } from 'type-graphql';
-import { buildSchema } from '../../utils/buildSchema';
+import { buildSchema } from '../../schema/buildSchema';
 import { MockRedis } from './MockRedis';
 
 interface Options {

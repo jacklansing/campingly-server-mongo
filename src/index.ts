@@ -8,7 +8,7 @@ import session from 'express-session';
 import connectRedis from 'connect-redis';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import { buildSchema } from './utils/buildSchema';
+import { buildSchema } from './schema/buildSchema';
 
 const main = async () => {
   await mongoose.connect(process.env.MONGO_DB_URL, {
