@@ -1,18 +1,39 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { useRequest } from './helpers/useRequest';
+import { getValidGear, getValidGearCategory } from './helpers/mocks';
 import {
-  getValidCampsite,
-  getValidGear,
-  getValidGearCategory,
-  getValidUser,
-} from './helpers/mocks';
-import UserModel from '../models/user';
-import { createCampsite, createGearCategory } from './helpers/testHelpers';
+  addGearToCategory,
+  createGearCategory,
+  createTestUserWithCampsite,
+} from './helpers/testHelpers';
 
 const ADD_GEAR_MUTATION = `
   mutation AddGear($input: AddGearInput!) {
     addGear(input: $input) {
+      campsite {
+        id
+        gearCategories {
+          id
+          category
+          gear {
+            id
+            name
+            quantity
+          }
+        }
+      }
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+const DELETE_GEAR_MUTATION = `
+  mutation DeleteGear($input: DeleteGearInput!) {
+    deleteGear(input: $input) {
       campsite {
         id
         gearCategories {
@@ -58,11 +79,7 @@ describe('Campsite Gear Category Resolvers', () => {
 
   describe('Mutation -> Add Gear', () => {
     it(`Successfully adds gear given valid campsite, category, and gear details`, async () => {
-      const testUser = await new UserModel(getValidUser()).save();
-      const testCampsite = await createCampsite(
-        { input: getValidCampsite() },
-        testUser.id,
-      );
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
       const testGearCategory = await createGearCategory(
         getValidGearCategory(),
         testUser.id,
@@ -107,11 +124,7 @@ describe('Campsite Gear Category Resolvers', () => {
     });
 
     it(`Returns a field error when gear name is less than 3 characters`, async () => {
-      const testUser = await new UserModel(getValidUser()).save();
-      const testCampsite = await createCampsite(
-        { input: getValidCampsite() },
-        testUser.id,
-      );
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
       const testGearCategory = await createGearCategory(
         getValidGearCategory(),
         testUser.id,
@@ -146,11 +159,7 @@ describe('Campsite Gear Category Resolvers', () => {
     });
 
     it(`Returns a field error when gear name is more than 30 characters`, async () => {
-      const testUser = await new UserModel(getValidUser()).save();
-      const testCampsite = await createCampsite(
-        { input: getValidCampsite() },
-        testUser.id,
-      );
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
       const testGearCategory = await createGearCategory(
         getValidGearCategory(),
         testUser.id,
@@ -185,11 +194,7 @@ describe('Campsite Gear Category Resolvers', () => {
     });
 
     it(`Returns field errors when gear name is empty`, async () => {
-      const testUser = await new UserModel(getValidUser()).save();
-      const testCampsite = await createCampsite(
-        { input: getValidCampsite() },
-        testUser.id,
-      );
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
       const testGearCategory = await createGearCategory(
         getValidGearCategory(),
         testUser.id,
@@ -228,11 +233,7 @@ describe('Campsite Gear Category Resolvers', () => {
     });
 
     it(`Returns a field error when gear quantity is less than 1`, async () => {
-      const testUser = await new UserModel(getValidUser()).save();
-      const testCampsite = await createCampsite(
-        { input: getValidCampsite() },
-        testUser.id,
-      );
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
       const testGearCategory = await createGearCategory(
         getValidGearCategory(),
         testUser.id,
@@ -267,11 +268,7 @@ describe('Campsite Gear Category Resolvers', () => {
     });
 
     it(`Returns a field error when gear quantity is more than 99`, async () => {
-      const testUser = await new UserModel(getValidUser()).save();
-      const testCampsite = await createCampsite(
-        { input: getValidCampsite() },
-        testUser.id,
-      );
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
       const testGearCategory = await createGearCategory(
         getValidGearCategory(),
         testUser.id,
@@ -306,11 +303,7 @@ describe('Campsite Gear Category Resolvers', () => {
     });
 
     it(`Returns error when given invalid gear category ID`, async () => {
-      const testUser = await new UserModel(getValidUser()).save();
-      const testCampsite = await createCampsite(
-        { input: getValidCampsite() },
-        testUser.id,
-      );
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
 
       const testGear = getValidGear();
       const res = await useRequest({
@@ -332,6 +325,178 @@ describe('Campsite Gear Category Resolvers', () => {
           expect.objectContaining({ message: 'Category does not exist' }),
         ]),
       );
+    });
+  });
+  describe('Mutation -> Delete Gear', () => {
+    it(`Successfully deletes gear given valid input`, async () => {
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
+      const gearCategory = getValidGearCategory();
+      const testGearCategory = await createGearCategory(
+        gearCategory,
+        testUser.id,
+        testCampsite.id,
+      );
+
+      const gear = getValidGear();
+
+      const testGear = await addGearToCategory(
+        testCampsite.id,
+        testGearCategory.id!,
+        gear.name,
+        gear.quantity,
+      );
+
+      const res = await useRequest({
+        source: DELETE_GEAR_MUTATION,
+        userId: testUser.id,
+        csid: testCampsite.id,
+        variableValues: {
+          input: {
+            campsiteId: testCampsite.id,
+            gearCategoryId: testGearCategory.id,
+            gearId: testGear.id,
+          },
+        },
+      });
+
+      expect(res).toBeDefined();
+      expect(res.data).toBeDefined();
+      expect(res.data?.deleteGear).toEqual({
+        campsite: {
+          id: testCampsite.id,
+          gearCategories: [
+            {
+              id: testGearCategory.id,
+              category: testGearCategory.category,
+              gear: [],
+            },
+          ],
+        },
+        errors: null,
+      });
+    });
+
+    it(`Returns field errors when campsite ID invalid`, async () => {
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
+      const gearCategory = getValidGearCategory();
+      const testGearCategory = await createGearCategory(
+        gearCategory,
+        testUser.id,
+        testCampsite.id,
+      );
+
+      const gear = getValidGear();
+
+      const testGear = await addGearToCategory(
+        testCampsite.id,
+        testGearCategory.id!,
+        gear.name,
+        gear.quantity,
+      );
+
+      const badCampsiteId = mongoose.Types.ObjectId();
+
+      const res = await useRequest({
+        source: DELETE_GEAR_MUTATION,
+        userId: testUser.id,
+        csid: badCampsiteId,
+        variableValues: {
+          input: {
+            campsiteId: badCampsiteId,
+            gearCategoryId: testGearCategory.id,
+            gearId: testGear.id,
+          },
+        },
+      });
+
+      expect(res).toBeDefined();
+      expect(res.data).toBeDefined();
+      expect(res.data?.deleteGear).toBeNull();
+      expect(res.errors).toBeDefined();
+      const error = res.errors![0];
+      expect(error.message).toBe('Could not find related campsite');
+    });
+
+    it(`Returns field errors when gear category ID invalid`, async () => {
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
+      const gearCategory = getValidGearCategory();
+      const testGearCategory = await createGearCategory(
+        gearCategory,
+        testUser.id,
+        testCampsite.id,
+      );
+
+      const gear = getValidGear();
+
+      const testGear = await addGearToCategory(
+        testCampsite.id,
+        testGearCategory.id!,
+        gear.name,
+        gear.quantity,
+      );
+
+      const badGearCategoryId = mongoose.Types.ObjectId();
+
+      const res = await useRequest({
+        source: DELETE_GEAR_MUTATION,
+        userId: testUser.id,
+        csid: testCampsite.id,
+        variableValues: {
+          input: {
+            campsiteId: testCampsite.id,
+            gearCategoryId: badGearCategoryId,
+            gearId: testGear.id,
+          },
+        },
+      });
+
+      expect(res).toBeDefined();
+      expect(res.data).toBeDefined();
+      expect(res.data?.deleteGear).toBeNull();
+      expect(res.errors).toBeDefined();
+      const error = res.errors![0];
+      expect(error.message).toBe('Could not find related gear category');
+    });
+
+    it(`Returns field errors when gear ID invalid`, async () => {
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
+      const gearCategory = getValidGearCategory();
+      const testGearCategory = await createGearCategory(
+        gearCategory,
+        testUser.id,
+        testCampsite.id,
+      );
+
+      const gear = getValidGear();
+
+      await addGearToCategory(
+        testCampsite.id,
+        testGearCategory.id!,
+        gear.name,
+        gear.quantity,
+      );
+
+      const badGearId = mongoose.Types.ObjectId();
+
+      const res = await useRequest({
+        source: DELETE_GEAR_MUTATION,
+        userId: testUser.id,
+        csid: testCampsite.id,
+        variableValues: {
+          input: {
+            campsiteId: testCampsite.id,
+            gearCategoryId: testGearCategory.id,
+            gearId: badGearId,
+          },
+        },
+      });
+
+      expect(res).toBeDefined();
+      expect(res.data).toBeDefined();
+      expect(res.data?.deleteGear).toBeNull();
+      expect(res.errors).toBeDefined();
+      const error = res.errors![0];
+      expect(error.message).toBe('Could not find related gear');
     });
   });
 });

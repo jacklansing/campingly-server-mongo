@@ -22,6 +22,10 @@ export const undoVolunteerGear = async (
     (gc) => gc.id === gearCategoryId,
   );
 
+  if (categoryIdx === -1) {
+    throw new ApolloError('Could not find related gear category');
+  }
+
   const gearIdx = campsite.gearCategories[categoryIdx].gear.findIndex(
     (g) => g.id === gearId,
   );

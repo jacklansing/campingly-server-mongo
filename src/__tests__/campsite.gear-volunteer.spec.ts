@@ -18,6 +18,33 @@ const VOLUNTEER_GEAR_MUTATION = `
           gear {
             id
             quantity
+            userHasVolunteered
+            volunteers {
+              userId
+              volunteerAmount
+            }
+          }
+        }
+      }
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+const UNDO_VOLUNTEER_GEAR_MUTATION = `
+  mutation UndoVolunteerGear($input: UndoVolunteerGearInput!) {
+    undoVolunteerGear(input: $input) {
+      campsite {
+        id
+        gearCategories {
+          id
+          gear {
+            id
+            quantity
+            userHasVolunteered
             volunteers {
               userId
               volunteerAmount
@@ -100,6 +127,7 @@ describe('Campsite Gear Volunteer Resolvers', () => {
                 {
                   id: testGear.id,
                   quantity: testGear.quantity,
+                  userHasVolunteered: true,
                   volunteers: [
                     {
                       userId: testUser._id,
@@ -283,6 +311,237 @@ describe('Campsite Gear Volunteer Resolvers', () => {
       expect(res.errors).toBeDefined();
       const error = res.errors![0];
       expect(error.message).toBe('Cannot volunteer twice');
+    });
+  });
+
+  describe('Mutation -> UndoVolunteerGear', () => {
+    it('Successfully removes the volunteer given valid input', async () => {
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
+      const gearCategory = getValidGearCategory();
+      const testGearCategory = await createGearCategory(
+        gearCategory,
+        testUser.id,
+        testCampsite.id,
+      );
+
+      const gear = getValidGear();
+
+      const testGear = await addGearToCategory(
+        testCampsite.id,
+        testGearCategory.id!,
+        gear.name,
+        gear.quantity,
+      );
+
+      // First we'll volunteer, then remove it.
+      await useRequest({
+        source: VOLUNTEER_GEAR_MUTATION,
+        userId: testUser.id,
+        csid: testCampsite.id,
+        variableValues: {
+          input: {
+            campsiteId: testCampsite.id,
+            gearCategoryId: testGearCategory.id,
+            gearId: testGear.id,
+            volunteerAmount: gear.quantity,
+          },
+        },
+      });
+
+      const res = await useRequest({
+        source: UNDO_VOLUNTEER_GEAR_MUTATION,
+        userId: testUser.id,
+        csid: testCampsite.id,
+        variableValues: {
+          input: {
+            campsiteId: testCampsite.id,
+            gearCategoryId: testGearCategory.id,
+            gearId: testGear.id,
+          },
+        },
+      });
+
+      expect(res).toBeDefined();
+      expect(res.data).toBeDefined();
+      expect(res.data?.undoVolunteerGear).toEqual({
+        campsite: {
+          id: testCampsite.id,
+          gearCategories: [
+            {
+              id: testGearCategory.id,
+              gear: [
+                {
+                  id: testGear.id,
+                  quantity: testGear.quantity,
+                  userHasVolunteered: false,
+                  volunteers: [],
+                },
+              ],
+            },
+          ],
+        },
+        errors: null,
+      });
+    });
+
+    it('Returns an error when campsite ID invalid', async () => {
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
+      const gearCategory = getValidGearCategory();
+      const testGearCategory = await createGearCategory(
+        gearCategory,
+        testUser.id,
+        testCampsite.id,
+      );
+
+      const gear = getValidGear();
+
+      const testGear = await addGearToCategory(
+        testCampsite.id,
+        testGearCategory.id!,
+        gear.name,
+        gear.quantity,
+      );
+
+      const badCampsiteId = mongoose.Types.ObjectId();
+
+      const res = await useRequest({
+        source: UNDO_VOLUNTEER_GEAR_MUTATION,
+        userId: testUser.id,
+        csid: badCampsiteId,
+        variableValues: {
+          input: {
+            campsiteId: badCampsiteId,
+            gearCategoryId: testGearCategory.id,
+            gearId: testGear.id,
+          },
+        },
+      });
+      expect(res).toBeDefined();
+      expect(res.data).toBeDefined();
+      expect(res.data?.undoVolunteerGear).toBeNull();
+      expect(res.errors).toBeDefined();
+      const error = res.errors![0];
+      expect(error.message).toBe('Could not find related campsite');
+    });
+
+    it('Returns an error when gear category ID invalid', async () => {
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
+      const gearCategory = getValidGearCategory();
+      const testGearCategory = await createGearCategory(
+        gearCategory,
+        testUser.id,
+        testCampsite.id,
+      );
+
+      const gear = getValidGear();
+
+      const testGear = await addGearToCategory(
+        testCampsite.id,
+        testGearCategory.id!,
+        gear.name,
+        gear.quantity,
+      );
+
+      const badGearCategegoryId = mongoose.Types.ObjectId();
+
+      const res = await useRequest({
+        source: UNDO_VOLUNTEER_GEAR_MUTATION,
+        userId: testUser.id,
+        csid: testCampsite.id,
+        variableValues: {
+          input: {
+            campsiteId: testCampsite.id,
+            gearCategoryId: badGearCategegoryId,
+            gearId: testGear.id,
+          },
+        },
+      });
+      expect(res).toBeDefined();
+      expect(res.data).toBeDefined();
+      expect(res.data?.undoVolunteerGear).toBeNull();
+      expect(res.errors).toBeDefined();
+      const error = res.errors![0];
+      expect(error.message).toBe('Could not find related gear category');
+    });
+
+    it('Returns an error when gear ID invalid', async () => {
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
+      const gearCategory = getValidGearCategory();
+      const testGearCategory = await createGearCategory(
+        gearCategory,
+        testUser.id,
+        testCampsite.id,
+      );
+
+      const gear = getValidGear();
+
+      await addGearToCategory(
+        testCampsite.id,
+        testGearCategory.id!,
+        gear.name,
+        gear.quantity,
+      );
+
+      const badGearId = mongoose.Types.ObjectId();
+
+      const res = await useRequest({
+        source: UNDO_VOLUNTEER_GEAR_MUTATION,
+        userId: testUser.id,
+        csid: testCampsite.id,
+        variableValues: {
+          input: {
+            campsiteId: testCampsite.id,
+            gearCategoryId: testGearCategory.id,
+            gearId: badGearId,
+          },
+        },
+      });
+      expect(res).toBeDefined();
+      expect(res.data).toBeDefined();
+      expect(res.data?.undoVolunteerGear).toBeNull();
+      expect(res.errors).toBeDefined();
+      const error = res.errors![0];
+      expect(error.message).toBe('Could not find related gear');
+    });
+
+    it('Returns an error when volunteer to remove cannot be found', async () => {
+      const [testUser, testCampsite] = await createTestUserWithCampsite();
+      const gearCategory = getValidGearCategory();
+      const testGearCategory = await createGearCategory(
+        gearCategory,
+        testUser.id,
+        testCampsite.id,
+      );
+
+      const gear = getValidGear();
+
+      const testGear = await addGearToCategory(
+        testCampsite.id,
+        testGearCategory.id!,
+        gear.name,
+        gear.quantity,
+      );
+
+      const badVolunteerId = mongoose.Types.ObjectId();
+
+      const res = await useRequest({
+        source: UNDO_VOLUNTEER_GEAR_MUTATION,
+        userId: badVolunteerId,
+        csid: testCampsite.id,
+        variableValues: {
+          input: {
+            campsiteId: testCampsite.id,
+            gearCategoryId: testGearCategory.id,
+            gearId: testGear.id,
+          },
+        },
+      });
+      expect(res).toBeDefined();
+      expect(res.data).toBeDefined();
+      expect(res.data?.undoVolunteerGear).toBeNull();
+      expect(res.errors).toBeDefined();
+      const error = res.errors![0];
+      expect(error.message).toBe('Could not locate volunteer to remove');
     });
   });
 });
