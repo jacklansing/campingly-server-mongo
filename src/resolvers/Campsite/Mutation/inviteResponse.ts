@@ -16,6 +16,9 @@ export const inviteResponse = async (
   const userId = req.session.userId;
   const campsiteId = await redis.get(token);
 
+  if (!campsiteId)
+    throw new ApolloError('Invite token has expired or is invalid');
+
   const campsite = await CampsiteModel.findById(campsiteId);
   const user = await UserModel.findById(userId);
 
@@ -25,9 +28,6 @@ export const inviteResponse = async (
   const originalInvite = campsite.invites.find(
     (invite) => invite.token === token,
   );
-
-  console.log('original invite', originalInvite);
-  console.log('token', token);
 
   if (!originalInvite) throw new ApolloError('Could not find related invite');
 
