@@ -3,6 +3,7 @@ import CampsiteModel from '../../../models/campsite';
 import UserModel from '../../../models/user';
 import { ApolloError } from 'apollo-server-express';
 import {
+  CampsiteResponse,
   InviteStatus,
   MutationInviteResponseArgs,
 } from '../../../resolvers/types/campsite.types';
@@ -12,12 +13,20 @@ export const inviteResponse = async (
   _: undefined,
   { input: { status, token } }: MutationInviteResponseArgs,
   { req, res, redis }: MyContext,
-): Promise<any> => {
+): Promise<CampsiteResponse> => {
   const userId = req.session.userId;
   const campsiteId = await redis.get(token);
 
-  if (!campsiteId)
-    throw new ApolloError('Invite token has expired or is invalid');
+  if (!campsiteId) {
+    return {
+      errors: [
+        {
+          field: 'token',
+          message: 'Invite token invalid or expired',
+        },
+      ],
+    };
+  }
 
   const campsite = await CampsiteModel.findById(campsiteId);
   const user = await UserModel.findById(userId);
