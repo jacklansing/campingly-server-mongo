@@ -9,7 +9,7 @@ export const getCampsite = async (
   const campsite = await CampsiteModel.findById(campsiteId)
     .populate('manager')
     .populate('counselors')
-    .populate('campsers')
+    .populate('campers')
     .populate('gearCategories')
     .exec();
 

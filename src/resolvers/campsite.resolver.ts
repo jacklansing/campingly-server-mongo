@@ -1,6 +1,11 @@
 import { MyContext } from '../types';
 import { IGear } from './types/campsite.types';
-import { allCampsites, myCampsites, getCampsite } from './Campsite/Query';
+import {
+  allCampsites,
+  myCampsites,
+  getCampsite,
+  campsitePreview,
+} from './Campsite/Query';
 import {
   createCampsite,
   createGearCategory,
@@ -8,14 +13,17 @@ import {
   deleteGear,
   volunteerGear,
   undoVolunteerGear,
+  inviteCamper,
+  inviteResponse,
 } from './Campsite/Mutation';
-import { manager } from './Campsite/Field';
+import { manager, campers, counselors } from './Campsite/Field';
 
 export default {
   Query: {
     getCampsite,
     allCampsites,
     myCampsites,
+    campsitePreview,
   },
   Mutation: {
     createCampsite,
@@ -24,9 +32,13 @@ export default {
     deleteGear,
     volunteerGear,
     undoVolunteerGear,
+    inviteCamper,
+    inviteResponse,
   },
   Campsite: {
     manager,
+    campers,
+    counselors,
   },
   Gear: {
     userHasVolunteered: async (parent: IGear, _: any, { req }: MyContext) => {

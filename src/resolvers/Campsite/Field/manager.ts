@@ -1,6 +1,10 @@
 import { ICampsite } from '../../types/campsite.types';
-import UserModel from '../../../models/user';
+import { MyContext } from 'src/types';
 
-export const manager = async (parent: ICampsite) => {
-  return UserModel.findById(parent.manager);
+export const manager = async (
+  parent: ICampsite,
+  _: any,
+  { userLoader }: MyContext,
+) => {
+  return userLoader.load(parent.manager.toString());
 };

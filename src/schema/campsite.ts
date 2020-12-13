@@ -10,6 +10,7 @@ export const typeDefs = gql`
     counselors: [User]!
     campers: [User]!
     gearCategories: [GearCategory]
+    invites: [CampsiteInvite]!
   }
 
   type GearCategory {
@@ -36,7 +37,27 @@ export const typeDefs = gql`
     errors: [FieldError]
   }
 
+  type CampsitePreview {
+    name: String!
+    startingDate: DateTime!
+    endingDate: DateTime!
+    manager: User!
+  }
+
+  enum InviteStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+  }
+
+  type CampsiteInvite {
+    userId: ObjectID!
+    status: InviteStatus!
+    role: CampsiteRole!
+  }
+
   extend type Query {
+    campsitePreview(campsiteId: String!): CampsitePreview
     getCampsite(campsiteId: String!): Campsite
     allCampsites: [Campsite]!
     myCampsites: [Campsite]!
@@ -49,6 +70,8 @@ export const typeDefs = gql`
     deleteGear(input: DeleteGearInput!): CampsiteResponse
     volunteerGear(input: VolunteerGearInput!): CampsiteResponse
     undoVolunteerGear(input: UndoVolunteerGearInput!): CampsiteResponse
+    inviteCamper(input: InviteCamperInput!): CampsiteResponse
+    inviteResponse(input: InviteResponseInput!): CampsiteResponse
   }
 
   input CreateCampsiteInput {
@@ -86,5 +109,15 @@ export const typeDefs = gql`
     campsiteId: ObjectID!
     gearCategoryId: ObjectID!
     gearId: ObjectID!
+  }
+
+  input InviteCamperInput {
+    userEmail: String!
+    role: CampsiteRole!
+  }
+
+  input InviteResponseInput {
+    status: InviteStatus!
+    token: String!
   }
 `;

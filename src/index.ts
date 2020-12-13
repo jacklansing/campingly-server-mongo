@@ -9,6 +9,7 @@ import connectRedis from 'connect-redis';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import { buildSchema } from './schema/buildSchema';
+import { createUserLoader } from './utils/loaders/userLoader';
 
 const main = async () => {
   await mongoose.connect(process.env.MONGO_DB_URL, {
@@ -16,6 +17,8 @@ const main = async () => {
     useUnifiedTopology: true,
     useCreateIndex: true,
   });
+
+  mongoose.set('debug', !__prod__);
 
   const app = express();
 
@@ -55,6 +58,7 @@ const main = async () => {
       req,
       res,
       redis,
+      userLoader: createUserLoader(),
     }),
   });
 

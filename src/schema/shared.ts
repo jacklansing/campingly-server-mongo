@@ -1,12 +1,11 @@
 import { gql } from 'apollo-server-express';
 
 export const typeDefs = gql`
-  directive @objectAuth(requires: Role = LOGIN) on OBJECT
-  directive @fieldAuth(requires: Role = LOGIN) on FIELD_DEFINITION
+  directive @objectAuth(requires: CampsiteRole = LOGIN) on OBJECT
+  directive @fieldAuth(requires: CampsiteRole = LOGIN) on FIELD_DEFINITION
 
-  enum Role {
-    LOGIN
-    USER
+  enum CampsiteRole {
+    CAMPER
     COUNSELOR
     MANAGER
   }

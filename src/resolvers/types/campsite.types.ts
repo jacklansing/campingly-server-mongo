@@ -1,5 +1,5 @@
 import Schema, { Document, Model } from 'mongoose';
-import { FieldError } from './shared.types';
+import { CampsiteRole, FieldError } from './shared.types';
 import { IUser } from './user.types';
 
 export interface ICampsite {
@@ -10,6 +10,7 @@ export interface ICampsite {
   counselors: Schema.Types.ObjectId[] | IUser[];
   campers: Schema.Types.ObjectId[] | IUser[];
   gearCategories: IGearCategory[];
+  invites: ICampsiteInvite[];
 }
 
 export interface ICampsiteDocument extends ICampsite, Document {}
@@ -33,6 +34,33 @@ export interface IGearVolunteer {
   userId: Schema.Types.ObjectId;
   volunteerAmount: number;
 }
+
+export enum InviteStatus {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  REJECTED = 'rejected',
+}
+
+export interface ICampsiteInvite {
+  userId: Schema.Types.ObjectId;
+  status: InviteStatus;
+  role: CampsiteRole;
+  token: string;
+}
+
+export type MutationInviteCamperArgs = {
+  input: {
+    userEmail: string;
+    role: CampsiteRole;
+  };
+};
+
+export type MutationInviteResponseArgs = {
+  input: {
+    status: InviteStatus;
+    token: string;
+  };
+};
 
 export type MutationCreateCampsiteArgs = {
   input: {
@@ -86,4 +114,11 @@ export type MutationUndoVolunteerGearArgs = {
 export type CampsiteResponse = {
   campsite?: ICampsite;
   errors?: FieldError[];
+};
+
+export type CampsitePreview = {
+  name: string;
+  startingDate: Date;
+  endingDate: Date;
+  manager: IUser;
 };

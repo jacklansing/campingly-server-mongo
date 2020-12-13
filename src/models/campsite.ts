@@ -12,15 +12,10 @@ const campsiteSchema = new Schema(
       ref: 'User',
     },
     counselors: [
-      {
-        id: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-      },
+      { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+      ,
     ],
-    campers: [
-      {
-        id: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-      },
-    ],
+    campers: [{ type: Schema.Types.ObjectId, required: true, ref: 'User' }],
     gearCategories: [
       {
         category: String,
@@ -40,6 +35,14 @@ const campsiteSchema = new Schema(
             ],
           },
         ],
+      },
+    ],
+    invites: [
+      {
+        userId: { type: Schema.Types.ObjectId, required: false, ref: 'User' },
+        status: { type: String, required: true },
+        role: { type: String, required: true },
+        token: { type: String, required: true },
       },
     ],
   },
