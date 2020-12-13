@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { __prod__ } from '../constants';
+import { __prod__ } from '../../constants';
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendForgotPasswordEmail = async (

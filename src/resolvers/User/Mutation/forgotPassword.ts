@@ -1,6 +1,6 @@
 import { FORGOT_PASS_PREFIX } from '../../../constants';
 import { MyContext } from '../../../types';
-import sendForgotPasswordEmail from '../../../utils/sendForgotPasswordEmail';
+import sendForgotPasswordEmail from '../../../utils/emails/sendForgotPasswordEmail';
 import { v4 } from 'uuid';
 import UserModel from '../../../models/user';
 
