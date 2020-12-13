@@ -65,5 +65,5 @@ export const inviteResponse = async (
   await campsite.save();
   redis.del(token);
 
-  return { campsite, errors: null };
+  return { campsite };
 };
