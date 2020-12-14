@@ -7,9 +7,6 @@ export const getCampsite = async (
   { campsiteId }: { campsiteId: string },
 ): Promise<ICampsiteDocument> => {
   const campsite = await CampsiteModel.findById(campsiteId)
-    .populate('manager')
-    .populate('counselors')
-    .populate('campers')
     .populate('gearCategories')
     .exec();
 
