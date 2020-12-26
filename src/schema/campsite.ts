@@ -45,13 +45,13 @@ export const typeDefs = gql`
   }
 
   enum InviteStatus {
-    PENDING
-    ACCEPTED
-    REJECTED
+    pending
+    accepted
+    rejected
   }
 
   type CampsiteInvite {
-    userId: ObjectID!
+    userId: ObjectID
     status: InviteStatus!
     role: CampsiteRole!
   }
