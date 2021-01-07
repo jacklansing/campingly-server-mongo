@@ -43,6 +43,7 @@ export const inviteCamper = async (
     token,
     role,
     status: InviteStatus.PENDING,
+    email: userEmail,
   });
 
   await campsite.save();

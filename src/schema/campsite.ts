@@ -54,6 +54,7 @@ export const typeDefs = gql`
     userId: ObjectID
     status: InviteStatus!
     role: CampsiteRole!
+    email: String!
   }
 
   extend type Query {

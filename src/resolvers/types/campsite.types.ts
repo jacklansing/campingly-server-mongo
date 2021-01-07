@@ -46,6 +46,7 @@ export interface ICampsiteInvite {
   status: InviteStatus;
   role: CampsiteRole;
   token: string;
+  email: string;
 }
 
 export type MutationInviteCamperArgs = {
