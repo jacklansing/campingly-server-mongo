@@ -51,6 +51,7 @@ export const typeDefs = gql`
   }
 
   type CampsiteInvite {
+    id: ObjectID
     userId: ObjectID
     status: InviteStatus!
     role: CampsiteRole!

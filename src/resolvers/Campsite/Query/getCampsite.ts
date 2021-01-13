@@ -9,7 +9,6 @@ export const getCampsite = async (
   const campsite = await CampsiteModel.findById(campsiteId)
     .populate('gearCategories')
     .exec();
-  console.log('campsite', campsite);
   if (!campsite) {
     throw new ApolloError('Campsite not found');
   }
