@@ -2,6 +2,7 @@ import { ApolloError } from 'apollo-server-express';
 import { CampsitePreview } from '../../types/campsite.types';
 import CampsiteModel from '../../../models/campsite';
 import { IUser } from 'src/resolvers/types/user.types';
+import { MyContext } from 'src/types';
 
 /**
  * Originally created for the campsite invitation process, to show some details
@@ -9,8 +10,10 @@ import { IUser } from 'src/resolvers/types/user.types';
  */
 export const campsitePreview = async (
   _: undefined,
-  { campsiteId }: { campsiteId: string },
+  { inviteToken }: { inviteToken: string },
+  { redis }: MyContext,
 ): Promise<CampsitePreview> => {
+  const campsiteId = await redis.get(inviteToken)
   const campsite = await CampsiteModel.findById(campsiteId)
     .populate('manager')
     .exec();

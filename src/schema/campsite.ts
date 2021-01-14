@@ -59,7 +59,7 @@ export const typeDefs = gql`
   }
 
   extend type Query {
-    campsitePreview(campsiteId: String!): CampsitePreview
+    campsitePreview(inviteToken: String!): CampsitePreview
     getCampsite(campsiteId: String!): Campsite
     allCampsites: [Campsite]!
     myCampsites: [Campsite]!
