@@ -16,7 +16,6 @@ export const inviteResponse = async (
 ): Promise<CampsiteResponse> => {
   const userId = req.session.userId;
   const campsiteId = await redis.get(token);
-
   if (!campsiteId) {
     return {
       errors: [
@@ -32,7 +31,6 @@ export const inviteResponse = async (
   const user = await UserModel.findById(userId);
 
   if (!campsite) throw new ApolloError('Could not find related campsite');
-  if (!user) throw new ApolloError('Error retreiving user info');
 
   const originalInvite = campsite.invites.find(
     (invite) => invite.token === token,
@@ -47,7 +45,9 @@ export const inviteResponse = async (
   }
 
   // Put into appropriate group if the invite is accepted.
-  if ((status = InviteStatus.ACCEPTED)) {
+  if (status === InviteStatus.ACCEPTED) {
+    if (!user) throw new ApolloError('Error retreiving user info');
+
     if (originalInvite.role === CampsiteRole.COUNSELOR) {
       campsite.counselors.push(userId);
     }
