@@ -14,12 +14,12 @@ const sendInviteCamperEmail = async (
       subject: 'Reset Your Password',
       html: existingUser
         ? `
-      <p>You have been invited to join a campsite!</P
-      <a href='${process.env.CORS_ORIGIN}/invite/?${params}'>Click here to choose a new password.</a>
+      <p>You have been invited to join a campsite via Campginly!</P
+      <a href="${process.env.CORS_ORIGIN}/invite/?${params}">Click here to join in!</a>
     `
         : `
     <p>You have been invited to join Campingly!</P
-    <a href='${process.env.CORS_ORIGIN}/invite/?${params}'>Click here to choose a new password.</a>
+    <a href="${process.env.CORS_ORIGIN}/invite/?${params}">Click here to review and get started with Campginly!</a>
   `,
       mailSettings: {
         sandboxMode: {
