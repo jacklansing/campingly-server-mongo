@@ -11,7 +11,7 @@ const sendInviteCamperEmail = async (
     await sgMail.send({
       to: toAddress,
       from: process.env.SENDGRID_FROM_ADDRESS,
-      subject: 'Reset Your Password',
+      subject: "You've been invited to join a Campsite!",
       html: existingUser
         ? `
       <p>You have been invited to join a campsite via Campginly!</P
