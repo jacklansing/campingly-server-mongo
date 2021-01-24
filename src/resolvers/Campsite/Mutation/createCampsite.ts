@@ -33,9 +33,8 @@ export const createCampsite = async (
   const { errors } = await useValidationSchema(input, NewCampsiteSchema);
   if (errors) return { errors };
 
-  const manager = await UserModel.findOne({
-    _id: req.session.userId,
-  }).exec();
+  const manager = await UserModel.findById(req.session.userId).exec();
+
   if (!manager) {
     throw new ApolloError('Error retrieving current user info');
   }
@@ -44,7 +43,7 @@ export const createCampsite = async (
     name: input.name,
     startingDate: new Date(input.startingDate),
     endingDate: new Date(input.endingDate),
-    manager: manager._id,
+    manager: manager.id,
   });
 
   try {
@@ -63,10 +62,6 @@ export const createCampsite = async (
   } catch {
     throw new ApolloError('There was an error saving the campsite to the User');
   }
-  await campsite
-    .populate('manager')
-    .populate('counselors')
-    .populate('campers')
-    .execPopulate();
+
   return { campsite };
 };
